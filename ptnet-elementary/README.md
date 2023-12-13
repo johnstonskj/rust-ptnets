@@ -43,7 +43,7 @@ while !sim.is_complete().unwrap_or_default() {
 
 ## Changes
 
-**Version 0.1.0**
+**Version 0.1.1**
 
 * Build: configure Github Actions.
 
