@@ -80,12 +80,12 @@ survey by L. Bernardinello and F. De Cindio from 1992. The classification has no
 therefore chiefly of historic interest. The classification is, however, useful for getting a quick overview of the main
 differences between various kinds of Petri Nets.
 
-* **Level 1**: nets characterized by places which can represent boolean values, i.e., a place is marked by at most
-  one unstructured token.
+* **Level 1**: nets characterized by places which can represent boolean values (\\(\mathbb{B}\\)), i.e., a place is
+  marked by at most one unstructured token.
   * Condition/Event systems
   * Elementary nets
-* **Level 2**: nets characterised by Places which can represent integer values, i.e., a place is marked by a number
-  of unstructured tokens.
+* **Level 2**: nets characterised by Places which can represent positive integer values (\\(\mathbb{N^{+}}\\)), i.e.,
+  a place is marked by a number of unstructured tokens.
   * Place/Transition systems
     * (Ordinary) Petri nets
       * Free choice systems
@@ -107,11 +107,11 @@ differences between various kinds of Petri Nets.
 
 Note that the table below uses \\(\mathbb{B}\\) to represent the set of boolean values \\(\left\\{ \bot,\top \right \\}\\).
 
-| Name              | Abbreviation | Token Type          | Arc Weight | Place Capacities | Timed | Stochastic | Level |
-|-------------------|--------------|---------------------|------------|------------------|-------|------------|-------|
-| Elementary net    | EN           | \\(\mathbb{B}\\)    | No         | No               | No    | No         |     1 |
-| Petri net         | PN           | \\(\mathbb{N}\\)    | Yes        | No               | No    | No         |     2 |
-| Colored Petri net | CPN          | \\(C\\)             | Yes        | Yes              | No    | No         |     3 |
+| Name              | Abbreviation | Token Type                   | Arc Weight | Place Capacities | Timed | Stochastic | Level |
+|-------------------|--------------|------------------------------|------------|------------------|-------|------------|-------|
+| Elementary net    | EN           | \\(M(p)\in \mathbb{B}\\)     | No         | No               | No    | No         |     1 |
+| Petri net         | PN           | \\(M(p)\in \mathbb{N^{+}}\\) | Yes        | No               | No    | No         |     2 |
+| Colored Petri net | CPN          | \\(M(p)\in C\\)              | Yes        | Yes              | No    | No         |     3 |
 
 ## Restrictions
 
