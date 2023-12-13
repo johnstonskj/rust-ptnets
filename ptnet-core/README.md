@@ -8,4 +8,8 @@ TBD
 
 **Version 0.1.0**
 
+* Build: configure Github Actions.
+
+**Version 0.1.0**
+
 * Initial release.
