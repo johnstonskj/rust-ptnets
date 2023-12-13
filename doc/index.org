@@ -1,0 +1,390 @@
+#+TITLE: Notes on Petri Nets
+#+AUTHOR: Simon Johnston
+#+EMAIL: johnstonskj@gmail.com
+#+LANGUAGE: en
+#+STARTUP: overview hidestars inlineimages entitiespretty
+
+#+NAME: src:pnet-first
+#+BEGIN_SRC dot :file pnet-first.svg :exports results
+strict digraph {
+    bgcolor="transparent";
+    fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
+    nodesep=0.75;
+    rankdir=LR;
+    ranksep=0.75;
+
+    // All place nodes.
+    // p0 [shape="circle"; label="●"; xlabel="start"];
+    p1 [shape="circle"; label=""; xlabel="p1"];
+    p2 [shape="circle"; label=""; xlabel="p2"];
+
+    // All transition nodes.
+    t1 [shape="rectangle"; style="filled"; fillcolor="darkgrey"; height=0.5; width=0.1; label=""; xlabel="t1"];
+
+    // All arcs.
+    p1 -> t1;
+    t1 -> p2;
+}
+#+END_SRC
+
+#+NAME: src:pnet-first
+#+CAPTION: Basic Petri Net Components
+#+RESULTS: src:pnet-first
+[[file:pnet-first.svg]]
+
+* PNet Core
+
+#+NAME: src:pnets-model-core
+#+BEGIN_SRC plantuml :file pnets-model-core.svg
+skinparam backgroundColor transparent
+skinparam style strictuml
+skinparam linetype polyline
+skinparam nodesep 100
+
+hide circle
+hide empty members
+
+package pnet  {
+    class NodeId <<datatype>>
+
+    interface HasIdentity {
+        +id: NodeId
+    }
+
+    interface HasLabel {
+        +label: Option<String>
+    }
+
+    interface HasDisplayLabel {
+        display_label: Option<String>
+    }
+}
+#+END_SRC
+
+#+NAME: fig:pnets-model-core
+#+CAPTION: Core Interfaces
+#+RESULTS: src:pnets-model-core
+[[file:pnets-model-core.svg]]
+
+
+
+#+NAME: src:pnets-model-packages
+#+BEGIN_SRC plantuml :file pnets-model-packages.svg
+skinparam backgroundColor transparent
+skinparam style strictuml
+skinparam linetype polyline
+skinparam nodesep 100
+
+hide circle
+hide empty members
+
+package pnet  {
+    package net {}
+    package sim {}
+    sim ..> net: <<import>>
+
+    package guarded {}
+    guarded ..> net: <<import>>
+
+    package inhibited {}
+    inhibited ..> net: <<import>>
+
+    package timed {}
+    timed ..> net: <<import>>
+    timed ..> sim: <<import>>
+
+    package weighted {}
+    weighted ..> net: <<import>>
+    weighted ..> sim: <<import>>
+
+}
+#+END_SRC
+
+#+NAME: fig:pnets-model-packages
+#+CAPTION: Core Modules
+#+RESULTS: src:pnets-model-packages
+[[file:pnets-model-packages.svg]]
+
+** Net Core Module
+
+#+NAME: src:pnets-net-model
+#+BEGIN_SRC plantuml :file pnets-net-model.svg
+skinparam backgroundColor transparent
+skinparam style strictuml
+skinparam linetype polyline
+skinparam nodesep 100
+
+hide empty members
+
+package pnet {
+    interface HasIdentity
+    interface HasLabel
+    package net {
+        interface Node {}
+        Node -down-|> HasIdentity
+        Node -down-|> HasLabel
+
+        interface Place {}
+        Place -down-|> Node
+
+        interface Transition {}
+        Transition -down-|> Node
+
+        interface Arc {
+            source: NodeId
+            target: NodeId
+        }
+
+        interface Net {}
+        Net "1" *--> "*" Place
+        Net "1" *--> "*" Transition
+        Net "1" *--> "*" Arc
+
+        interface NetBuilder <<builder>>
+        interface PlaceBuilder <<builder>>
+        interface TransitionBuilder <<builder>>
+    }
+}
+#+END_SRC
+
+#+NAME: fig:pnets-net-model
+#+CAPTION: Sim Net Module
+#+RESULTS: src:pnets-net-model
+[[file:pnets-net-model.svg]]
+
+** Sim Core Module
+
+#+NAME: src:pnets-sim-model
+#+BEGIN_SRC plantuml :file pnets-sim-model.svg
+skinparam backgroundColor transparent
+skinparam style strictuml
+skinparam linetype polyline
+skinparam nodesep 100
+
+hide empty members
+
+package pnet {
+    package net {
+        interface Net
+    }
+    package sim {
+        interface Tokens {
+            +value: Value
+        }
+        interface Value {
+            +default: Value
+        }
+        Tokens +-- Value
+        interface Marking {
+            +step: Step
+            +marking(NodeId): Tokens
+        }
+        Marking ..> Tokens
+        
+        interface MarkingFormatter {
+            +format(Marking)
+        }
+        MarkingFormatter ..> Marking
+        
+        class Step <<datatype>>
+        class Duration <<datatype>>
+
+        interface Simulation {
+            +step: Step
+        }
+        Simulation "1" o--> "1" Net
+        Simulation "1" o--> "1" Marking
+    }
+}
+#+END_SRC
+
+#+NAME: fig:pnets-sim-model
+#+CAPTION: Sim Core Module
+#+RESULTS: src:pnets-sim-model
+[[file:pnets-sim-model.svg]]
+
+** Guarded Extension Module
+
+#+NAME: src:pnets-guarded-model
+#+BEGIN_SRC plantuml :file pnets-guarded-model.svg
+skinparam backgroundColor transparent
+skinparam style strictuml
+skinparam linetype polyline
+skinparam nodesep 100
+
+hide empty members
+
+package pnet {
+    package net {
+        interface Transition
+    }
+    package guarded {
+        interface GuardedTransition {
+            +is_guarded(): boolean
+            +evaluate_guard(): boolean
+        }
+        GuardedTransition -|> Transition
+    }
+}
+#+END_SRC
+
+#+NAME: fig:pnets-guarded-model
+#+CAPTION: Guarded Extension Module
+#+RESULTS: src:pnets-guarded-model
+[[file:pnets-guarded-model.svg]]
+
+** Inhibited Extension Module
+
+#+NAME: src:pnets-inhibited-model
+#+BEGIN_SRC plantuml :file pnets-inhibited-model.svg
+skinparam backgroundColor transparent
+skinparam style strictuml
+skinparam linetype polyline
+skinparam nodesep 100
+
+hide empty members
+
+package pnet {
+    package net {
+        interface Arc
+    }
+    package inhibited {
+        interface InhibitorArc {}
+        InhibitorArc -up-|> Arc
+        interface ResetArc {}
+        ResetArc -up-|> Arc
+    }
+}
+#+END_SRC
+
+#+NAME: fig:pnets-inhibited-model
+#+CAPTION: Inhibited Extension Module
+#+RESULTS: src:pnets-inhibited-model
+[[file:pnets-inhibited-model.svg]]
+
+** Timed Extension Module
+
+#+NAME: src:pnets-timed-model
+#+BEGIN_SRC plantuml :file pnets-timed-model.svg
+skinparam backgroundColor transparent
+skinparam style strictuml
+skinparam linetype polyline
+skinparam nodesep 100
+
+hide empty members
+
+package pnet {
+    package net {
+        interface Transition
+    }
+    package sim {
+        interface Duration
+    }
+    package timed {
+        interface TimedTransition {
+            +duration(): Duration
+        }
+        TimedTransition -up-|> Transition
+        interface ImmediateTransition {}
+        ImmediateTransition -up-|> TimedTransition
+        interface RandomBoundedTransition {}
+        RandomBoundedTransition -up-|> TimedTransition
+    }
+}
+#+END_SRC
+
+#+NAME: fig:pnets-timed-model
+#+CAPTION: Timed Extension Module
+#+RESULTS: src:pnets-timed-model
+[[file:pnets-timed-model.svg]]
+
+** Weighted Extension Module
+
+#+NAME: src:pnets-weighted-model
+#+BEGIN_SRC plantuml :file pnets-weighted-model.svg
+skinparam backgroundColor transparent
+skinparam style strictuml
+skinparam linetype polyline
+skinparam nodesep 100
+
+hide empty members
+
+package pnet {
+    package net {
+        interface Arc
+        interface Place
+    }
+    package sim {
+        interface Tokens
+    }
+    package weighted {
+        interface WeightedArc {}
+        WeightedArc -up-|> Arc
+        WeightedArc o--> "weight" Tokens
+        interface CapacityLimitedPlace {}
+        CapacityLimitedPlace -up-|> Place
+        CapacityLimitedPlace o--> "capacity" Tokens
+    }
+}
+#+END_SRC
+
+#+NAME: fig:pnets-weighted-model
+#+CAPTION: Weighted Extension Module
+#+RESULTS: src:pnets-weighted-model
+[[file:pnets-weighted-model.svg]]
+
+* Elementary Nets
+
+
+#+NAME: src:pnets-elementary-net
+#+BEGIN_SRC plantuml :file pnets-elementary-net.svg
+skinparam backgroundColor transparent skinparam style strictuml skinparam linetype polyline skinparam nodesep 100
+
+hide circle
+hide empty members
+
+class bool <<datatype>>
+
+package pnet_core {
+    package net {
+        interface Arc
+        interface Place
+        interface Transition
+        interface Net
+    }
+    package sim {
+        interface Tokens
+        interface Value
+        interface Marking
+        interface Simulation
+    }
+}
+package elementary {
+    class SimpleArc {}
+    SimpleArc .up.|> Arc
+
+    class SimplePlace {}
+    SimplePlace .up.|> Place
+
+    class SimpleTransition {}
+    SimpleTransition .up.|> Transition
+
+    class ElementaryNet {}
+    ElementaryNet .up.|> Net
+
+    class Dot {}
+    Dot .up.|> Tokens
+    bool .up.|> Value
+
+    class SimpleMarking {}
+    SimpleMarking .up.|> Marking 
+    
+    class ElementarySimulation {}
+    ElementarySimulation .up.|> Simulation
+}
+#+END_SRC
+
+#+NAME: fig:pnets-elementary-net
+#+CAPTION: Elementary Net Module
+#+RESULTS: src:pnets-elementary-net
+[[file:pnets-elementary-net.svg]]

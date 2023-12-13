@@ -16,7 +16,12 @@ use std::fmt::{Debug, Display};
 #[derive(Debug)]
 pub enum Error {
     /// An error was signaled by the standard library I/O functions.
-    IoError { source: std::io::Error },
+    IoError {
+        source: std::io::Error,
+    },
+    FromUtf8Error {
+        source: std::string::FromUtf8Error,
+    },
 }
 
 ///
@@ -34,6 +39,12 @@ pub fn io_error(source: std::io::Error) -> Error {
     Error::IoError { source }
 }
 
+/// Construct an Error from the provided source.
+#[inline]
+pub fn from_utf8_error(source: std::string::FromUtf8Error) -> Error {
+    Error::FromUtf8Error { source }
+}
+
 // ------------------------------------------------------------------------------------------------
 // Implementations
 // ------------------------------------------------------------------------------------------------
@@ -45,6 +56,10 @@ impl Display for Error {
             "{}",
             match self {
                 Error::IoError { source } => format!("An I/O error occurred; source: {}", source),
+                Error::FromUtf8Error { source } => format!(
+                    "An error occurred making a string from UTF-8 bytes; source: {}",
+                    source
+                ),
             }
         )
     }
@@ -55,6 +70,7 @@ impl std::error::Error for Error {
         #[allow(unreachable_patterns)]
         match self {
             Error::IoError { source } => Some(source),
+            Error::FromUtf8Error { source } => Some(source),
             _ => None,
         }
     }
@@ -63,5 +79,11 @@ impl std::error::Error for Error {
 impl From<std::io::Error> for Error {
     fn from(source: std::io::Error) -> Self {
         io_error(source)
+    }
+}
+
+impl From<std::string::FromUtf8Error> for Error {
+    fn from(source: std::string::FromUtf8Error) -> Self {
+        from_utf8_error(source)
     }
 }

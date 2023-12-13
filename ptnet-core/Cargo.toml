@@ -1,9 +1,15 @@
 [package]
 name = "ptnet-core"
 version = "0.1.0"
+authors = ["Simon Johnston <johnstonskj@gmail.com>"]
 edition = "2021"
+license-file = "LICENSE"
+readme = "README.md"
+publish = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[package.metadata.docs.rs]
+rustdoc-args = [ "--html-in-header", "doc/katex-header.html" ]
+targets = ["x86_64-unknown-linux-gnu"]
+all-features = true
 
 [dependencies]
-rand = "0.8.5"
