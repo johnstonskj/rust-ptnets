@@ -185,7 +185,6 @@ $$\tag{AC Restriction} \forall p_1,p_2\in P: (p_1{}^{\bullet} \cap p_2{}^{\bulle
 #![deny(
     // ---------- Public
     exported_private_dependencies,
-    private_in_public,
     // ---------- Deprecated
     anonymous_parameters,
     bare_trait_objects,

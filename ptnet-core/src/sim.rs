@@ -2,14 +2,14 @@
 This module provides the basic behavioral traits for a net.
 
 The traits in this module are used to develop a simulation of a net, also known as a *token game*.
-The [`Simulation`] trait describes the component that executes the net [`Step`] by step. 
+The [`Simulation`] trait describes the component that executes the net [`Step`] by step.
 */
 
 use crate::error::Error;
 use crate::net::{Arc, Net, Place, Transition};
 use crate::NodeId;
-use std::{fmt::Debug, fmt::Display, hash::Hash};
 use std::ops::{Add, Sub};
+use std::{fmt::Debug, fmt::Display, hash::Hash};
 
 // ------------------------------------------------------------------------------------------------
 // Public Types  Marking
@@ -139,7 +139,9 @@ pub trait Simulation: Debug {
     /// Not all nets can determine termination, if it is possible to determine termination return
     /// `Some(...)`, else `None`.
     ///
-    fn is_complete(&self) -> Option<bool> { None }
+    fn is_complete(&self) -> Option<bool> {
+        None
+    }
 }
 
 // ------------------------------------------------------------------------------------------------

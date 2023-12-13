@@ -74,7 +74,6 @@ while !sim.is_complete().unwrap_or_default() {
 #![deny(
     // ---------- Public
     exported_private_dependencies,
-    private_in_public,
     // ---------- Deprecated
     anonymous_parameters,
     bare_trait_objects,
@@ -674,7 +673,7 @@ impl MarkingFormatter for SimpleMarkingFormatter {
                 .iter()
                 .map(|id| format!(
                     "{:^FORMAT_FIELD_WIDTH$}",
-                    if *marking.marking(&id).value() {
+                    if *marking.marking(id).value() {
                         "Y"
                     } else {
                         ""
@@ -694,7 +693,7 @@ impl MarkingFormatter for SimpleMarkingFormatter {
                 .iter()
                 .map(|id| format!(
                     "{:^FORMAT_FIELD_WIDTH$}",
-                    if *marking.marking(&id).value() {
+                    if *marking.marking(id).value() {
                         "Y"
                     } else {
                         ""
@@ -897,7 +896,7 @@ impl PlaceBuilder for SimplePlaceBuilder {
     fn remember_as(self, tag: &'static str) -> Self {
         {
             let memory = &mut self.inner.borrow_mut().memory;
-            memory.insert(tag, self.id().clone());
+            memory.insert(tag, self.id());
         }
         self
     }
@@ -959,7 +958,7 @@ impl TransitionBuilder for SimpleTransitionBuilder {
     fn remember_as(self, tag: &'static str) -> Self {
         {
             let memory = &mut self.inner.borrow_mut().memory;
-            memory.insert(tag, self.id().clone());
+            memory.insert(tag, self.id());
         }
         self
     }
@@ -1121,7 +1120,7 @@ mod tests {
         }
     }
 
-     #[test]
+    #[test]
     fn test_simple_net_builder() {
         let mut builder = ElementaryNetBuilder::default();
 
