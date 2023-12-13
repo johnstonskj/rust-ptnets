@@ -8,7 +8,7 @@ $$\tag{Guarded Net} N = \left\langle P,T,A,G \right\rangle$$
 
 This function maps the set of transitions and a *particular marking* to a truth value.
 
-$$\tag{Guard Function} G: T \times M_n \mapsto  \left \\{ \bot,\top \right \\}$$
+$$\tag{Guard Function} G: T \times M_n \mapsto  \left \mathbb{B}$$
 
 This function is called from within the existing enable check as follows.
 

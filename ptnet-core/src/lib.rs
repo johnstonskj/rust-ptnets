@@ -105,12 +105,13 @@ differences between various kinds of Petri Nets.
 
 ## Extensions
 
+Note that the table below uses \\(\mathbb{B}\\) to represent the set of boolean values \\(\left\\{ \bot,\top \right \\}\\).
 
-| Name              | Abbreviation | Token Type                           | Arc Weight | Place Capacities | Timed | Stochastic | Level |
-|-------------------|--------------|--------------------------------------|------------|------------------|-------|------------|-------|
-| Elementary net    | EN           | \\(\left\\{ \bot,\top \right \\}\\)  | No         | No               | No    | No         |     1 |
-| Petri net         | PN           | \\(\mathbb{N}\\)                     | Yes        | No               | No    | No         |     2 |
-| Colored Petri net | CPN          | \\(C\\)                              | Yes        | Yes              | No    | No         |     3 |
+| Name              | Abbreviation | Token Type          | Arc Weight | Place Capacities | Timed | Stochastic | Level |
+|-------------------|--------------|---------------------|------------|------------------|-------|------------|-------|
+| Elementary net    | EN           | \\(\mathbb{B}\\)    | No         | No               | No    | No         |     1 |
+| Petri net         | PN           | \\(\mathbb{N}\\)    | Yes        | No               | No    | No         |     2 |
+| Colored Petri net | CPN          | \\(C\\)             | Yes        | Yes              | No    | No         |     3 |
 
 ## Restrictions
 

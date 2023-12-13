@@ -1,7 +1,6 @@
 /*!
-One-line description.
-
-Elementary Net (EN) System
+This crate provides an implementation of the
+[`ptnet-core`](https://docs.rs/ptnet-core) traits for Elementary net (EN) systems.
 
 
 # Example

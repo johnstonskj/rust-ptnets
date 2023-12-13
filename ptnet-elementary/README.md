@@ -1,6 +1,7 @@
 # Crate ptnet-elementary
 
-This crate provides an implementation of the [ptnet-core](https://docs.rs/ptnet_core/) traits for Elementary nets (EN).
+This crate provides an implementation of the
+[`ptnet-core`](https://github.com/johnstonskj/rust-ptnets/tree/main/ptnet-core) traits for Elementary net (EN) systems.
 
 ## Example
 
