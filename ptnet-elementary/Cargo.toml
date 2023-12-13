@@ -6,7 +6,7 @@ authors = ["Simon Johnston <johnstonskj@gmail.com>"]
 edition = "2021"
 documentation = "https://docs.rs/ptnet_elementary/"
 repository = "https://github.com/johnstonskj/rust-ptnets"
-license-file = "LICENSE"
+license-file = "../LICENSE"
 readme = "README.md"
 publish = true
 
