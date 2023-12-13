@@ -1,8 +1,11 @@
 [package]
 name = "ptnet-core"
+description = "Core types and traits for modeling and simulating Place/Transition nets."
 version = "0.1.0"
 authors = ["Simon Johnston <johnstonskj@gmail.com>"]
 edition = "2021"
+documentation = "https://docs.rs/ptnet_core/"
+repository = "https://github.com/johnstonskj/rust-ptnets"
 license-file = "LICENSE"
 readme = "README.md"
 publish = true
