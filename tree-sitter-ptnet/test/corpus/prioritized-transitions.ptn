@@ -1,0 +1,68 @@
+=======================
+Prioritized Transitions
+=======================
+
+net example {
+  place p0, p1, p2
+
+  transition t0 {
+    priority = 1
+  }
+
+  transition t1 {
+    priority = 2
+  }
+
+  arc p0 -> t0
+  arc p1 -> t1
+  arc t0 -> p2
+  arc t1 -> p2
+}
+
+---
+
+(source_file
+  (net_def
+    (name)
+    (place_def
+      (name)
+      (name)
+      (name))
+    (transition_def
+      (name)
+      (transition_body
+        (priority_constraint
+          (unsigned))))
+    (transition_def
+      (name)
+      (transition_body
+        (priority_constraint
+          (unsigned))))
+    (arc_def
+      (arc_expression
+        (arc_name_or_expression
+          (name))
+        (normal_arc)
+        (arc_name_or_expression
+          (name))))
+    (arc_def
+      (arc_expression
+        (arc_name_or_expression
+          (name))
+        (normal_arc)
+        (arc_name_or_expression
+          (name))))
+    (arc_def
+      (arc_expression
+        (arc_name_or_expression
+          (name))
+        (normal_arc)
+        (arc_name_or_expression
+          (name))))
+    (arc_def
+      (arc_expression
+        (arc_name_or_expression
+          (name))
+        (normal_arc)
+        (arc_name_or_expression
+          (name))))))

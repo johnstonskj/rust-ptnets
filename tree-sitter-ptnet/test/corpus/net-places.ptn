@@ -1,0 +1,21 @@
+===============
+Net with places
+===============
+
+net example {
+  place p0
+  place p1
+  place p2
+}
+
+---
+
+(source_file
+  (net_def
+    (name)
+    (place_def
+      (name))
+    (place_def
+      (name))
+    (place_def
+      (name))))

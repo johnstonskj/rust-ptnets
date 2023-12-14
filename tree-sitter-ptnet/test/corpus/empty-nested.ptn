@@ -1,0 +1,21 @@
+================
+Empty nested net
+================
+
+net example {
+
+  net inner1 {}
+
+  net inner2 {}
+
+}
+
+---
+
+(source_file
+  (net_def
+    (name)
+    (subnet_def
+      (name))
+    (subnet_def
+      (name))))

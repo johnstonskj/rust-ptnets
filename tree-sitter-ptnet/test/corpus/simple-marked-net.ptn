@@ -1,0 +1,51 @@
+=================
+Simple marked net
+=================
+
+net example {
+  place p0
+  place p1
+
+  transition t0
+
+  arc p0 -> t0
+  arc t0 -> p1
+
+  initial marking {
+    p0 = true
+  }
+}
+
+---
+
+(source_file
+  (net_def
+    (name)
+    (place_def
+      (name))
+    (place_def
+      (name))
+    (transition_def
+      (name))
+    (arc_def
+      (arc_expression
+        (arc_name_or_expression
+          (name))
+        (normal_arc)
+        (arc_name_or_expression
+          (name))))
+    (arc_def
+      (arc_expression
+        (arc_name_or_expression
+          (name))
+        (normal_arc)
+        (arc_name_or_expression
+          (name))))
+    (initial_marking_def
+      (marking_def
+        (marking_assignment
+          (name)
+          (value_expr
+            (boolean)))))))
+
+

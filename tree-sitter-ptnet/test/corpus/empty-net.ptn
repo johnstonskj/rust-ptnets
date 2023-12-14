@@ -1,0 +1,11 @@
+=========
+Empty net
+=========
+
+net example {}
+
+---
+
+(source_file
+  (net_def
+    (name)))

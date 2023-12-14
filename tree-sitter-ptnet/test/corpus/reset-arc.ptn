@@ -1,0 +1,27 @@
+=========
+Reset arc
+=========
+
+net example {
+  place p0
+  transition t0
+
+  arc p0 -reset> t0
+}
+
+---
+
+(source_file
+  (net_def
+    name: (name)
+    (place_def
+      name: (name))
+    (transition_def
+      name: (name))
+    (arc_def
+      (arc_expression
+        source: (arc_name_or_expression
+          (name))
+        (reset_arc)
+        target: (arc_name_or_expression
+          (name))))))

@@ -1,0 +1,71 @@
+===================
+Simple weighted net
+===================
+
+net example {
+  tokens N+
+  
+  place p0 {
+    capacity = 2
+  }
+  place p1 {
+    capacity = inf
+  }
+
+  transition t0
+
+  arc p0 -> t0 {
+    weight = 2
+  }
+  arc t0 -> p1
+
+  initial marking {
+    p0 = true
+  }
+}
+
+---
+
+(source_file
+  (net_def
+    (name)
+    (token_set_positive)
+    (place_def
+      (name)
+      (place_body
+        (capacity_constraint
+          (value_expr
+            (unsigned)))))
+    (place_def
+      (name)
+      (place_body
+        (capacity_constraint
+          (value_expr
+            (infinity)))))
+    (transition_def
+      (name))
+    (arc_def
+      (arc_expression
+        (arc_name_or_expression
+          (name))
+        (normal_arc)
+        (arc_name_or_expression
+          (name)))
+      (arc_body
+        (weight_constraint
+          (value_expr
+            (unsigned)))))
+    (arc_def
+      (arc_expression
+        (arc_name_or_expression
+          (name))
+        (normal_arc)
+        (arc_name_or_expression
+          (name))))
+    (initial_marking_def
+      (marking_def
+        (marking_assignment
+          (name)
+          (value_expr
+            (boolean)))))))
+

@@ -1,0 +1,118 @@
+==========
+Nested net
+==========
+
+net example {
+
+  place p_start
+  transition t_start
+  arc p_start -> t_start
+
+  net inner1 {
+    public p11, p12
+    place p11, p12
+    transition t11
+    arc p11 -> t11 -> p12
+  }
+
+  arc t_start -> p11, p21
+
+  net inner2 {
+    public p21, p22
+    place p21, p22
+    transition t21
+    arc p21 -> t21 -> p22
+  }
+
+  transition t_end
+  place p_end
+  arc p12, p22 -> t_end
+  arc t_end -> p_end
+
+}
+
+---
+
+(source_file
+  (net_def
+    (name)
+    (place_def
+      (name))
+    (transition_def
+      (name))
+    (arc_def
+      (arc_expression
+        (arc_name_or_expression
+          (name))
+        (normal_arc)
+        (arc_name_or_expression
+          (name))))
+    (subnet_def
+      (name)
+       (public_places
+         (name)
+         (name))
+      (place_def
+        (name)
+        (name))
+      (transition_def
+        (name))
+      (arc_def
+        (arc_expression
+          (arc_name_or_expression
+            (name))
+          (normal_arc)
+          (arc_name_or_expression
+            (name))
+          (normal_arc)
+          (arc_name_or_expression
+            (name)))))
+    (arc_def
+      (arc_expression
+        (arc_name_or_expression
+          (name))
+        (normal_arc)
+        (arc_name_or_expression
+          (name))
+        (arc_name_or_expression
+          (name))))
+    (subnet_def
+      (name)
+      (public_places
+        (name)
+        (name))
+      (place_def
+        (name)
+        (name))
+      (transition_def
+        (name))
+      (arc_def
+        (arc_expression
+          (arc_name_or_expression
+            (name))
+          (normal_arc)
+          (arc_name_or_expression
+            (name))
+          (normal_arc)
+          (arc_name_or_expression
+            (name)))))
+    (transition_def
+      (name))
+    (place_def
+      (name))
+    (arc_def
+      (arc_expression
+        (arc_name_or_expression
+          (name))
+        (arc_name_or_expression
+          (name))
+        (normal_arc)
+        (arc_name_or_expression
+          (name))))
+    (arc_def
+      (arc_expression
+        (arc_name_or_expression
+          (name))
+        (normal_arc)
+        (arc_name_or_expression
+          (name))))))

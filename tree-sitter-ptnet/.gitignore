@@ -1,0 +1,20 @@
+# -*- mode: gitignore; -*-
+
+### Tree-Sitter ###
+
+# Org-Mode generated
+/README.html
+
+# From the debug test tool
+/log.html
+
+# Generated for the playground
+/tree-sitter-*.wasm
+
+### Node ###
+
+package-lock.json
+
+node_modules
+
+/build/

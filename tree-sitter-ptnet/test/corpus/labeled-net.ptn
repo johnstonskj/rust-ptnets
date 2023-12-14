@@ -1,0 +1,70 @@
+===========
+Labeled net
+===========
+
+net example {
+  label = "Example"
+
+  place p0 {
+    label = "start"
+  }
+  
+  place p1 {
+    label = "end"
+  }
+
+  transition t0 {
+    label = "do it"
+  }
+
+  arc p0 -> t0 {
+    label = "starting"
+  }
+  
+  arc t0 -> p1 {
+    label = "ending"
+  }
+}
+
+---
+
+(source_file
+  (net_def
+    (name)
+    (label_property
+      (quoted_string))
+    (place_def
+      (name)
+      (place_body
+        (label_property
+          (quoted_string))))
+    (place_def
+      (name)
+      (place_body
+        (label_property
+          (quoted_string))))
+    (transition_def
+      (name)
+      (transition_body
+        (label_property
+          (quoted_string))))
+    (arc_def
+      (arc_expression
+        (arc_name_or_expression
+          (name))
+        (normal_arc)
+        (arc_name_or_expression
+          (name)))
+      (arc_body
+        (label_property
+          (quoted_string))))
+    (arc_def
+      (arc_expression
+        (arc_name_or_expression
+          (name))
+        (normal_arc)
+        (arc_name_or_expression
+          (name)))
+      (arc_body
+        (label_property
+          (quoted_string))))))
