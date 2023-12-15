@@ -3,7 +3,7 @@ Simple timed net
 ================
 
 net example {
-  tokens N+
+  tokens Positive
   
   place p0, p1, p2, p3
 
@@ -27,7 +27,9 @@ net example {
 (source_file
   (net_def
     (name)
-    (token_set_positive)
+    (tokens
+      (token_counter
+        (token_set_positive)))
     (place_def
       (name)
       (name)

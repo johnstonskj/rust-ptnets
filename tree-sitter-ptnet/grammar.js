@@ -42,7 +42,7 @@ module.exports = grammar({
         // Identifier/Name
         // -----------------------------------------------------------------------
 
-        name: $ => /[a-zA-Zα-ωΑ-Ωµ_][a-zA-Zα-ωΑ-Ωµ0-9_]*/,
+        name: $ => /[a-zA-Zα-ωΑ-Ωµ][a-zA-Zα-ωΑ-Ωµ0-9_]*/,
 
         _name_list: $ => seq(
             field('name', $.name),
@@ -67,7 +67,7 @@ module.exports = grammar({
             $._block_start,
             optional($.label_property),
             optional($.defaults),
-            optional($._token_def),
+            optional($.tokens),
             repeat($._node_or_arc),
             optional($.initial_marking_def),
             $._block_end
@@ -90,55 +90,6 @@ module.exports = grammar({
             $.weight_constraint,
         ),
 
-        _token_def: $ => seq(
-            keyword('tokens'),
-            $._token_set
-        ),
-
-        _token_set: $ => choice(
-            $.token_set_boolean,
-            $.token_set_natural,
-            $.token_set_positive,
-            $.token_set_def
-        ),
-
-        token_set_boolean: $ => 'B',
-        token_set_natural: $ => 'N',
-        token_set_positive: $ => 'N+',
-
-        token_set_def: $ => seq(
-            $.name,
-            operator('='),
-            choice(
-                $.tuple_type,
-                $.set_type
-            )
-        ),
-
-        tuple_type: $ => seq(
-            '(',
-            $.name,
-            repeat1(
-                seq(
-                    ',',
-                    $.name
-                )
-            ),
-            ')'
-        ),
-
-        set_type: $ => seq(
-            '{',
-            $.name,
-            repeat1(
-                seq(
-                    ',',
-                    $.name
-                )
-            ),
-            '}'
-        ),
-
         _node_or_arc: $ => choice(
             $.subnet_def,
             $.place_def,
@@ -150,6 +101,70 @@ module.exports = grammar({
             keyword('initial'),
             $.marking_def,
         ),
+
+        // -----------------------------------------------------------------------
+        // Tokens
+        //
+        // () * Boolean :: elementary nets
+        // () * Natural :: ordinary Petri nets
+        // {Red, Blue, Green} * N :: Colored token
+        // {Red, Blue, Green} * {Low, Medium, High}
+        // ⟨String, {Red, Blue, Green}⟩ * Natural
+        //
+        // -----------------------------------------------------------------------
+        tokens: $ => seq(
+            keyword('tokens'),
+            optional(
+                // default token value is ()
+                seq(
+                    field('token', $.token_value),
+                    operator('*')
+                )
+            ),
+            field('counter', $.token_counter)
+        ),
+
+        token_value: $ => seq(
+            choice(
+                $.unit_type,
+                $.token_set_boolean,
+                $.token_set_integer,
+                $.token_set_natural,
+                $.token_set_positive,
+                $.token_set_strings,
+                $.tuple_type,
+                $.set_type
+            )
+        ),
+
+        token_counter: $ => seq(
+            choice(
+                $.token_set_boolean,
+                $.token_set_natural,
+                $.token_set_positive,
+                $.set_type
+            )
+        ),
+
+        unit_type: $ => token('()'),
+
+        tuple_type: $ => seq(
+            '<',
+            $._name_list,
+            '>'
+        ),
+
+        set_type: $ => seq(
+            '{',
+            $._name_list,
+            '}'
+        ),
+
+        token_set_boolean: $ => token('Boolean'),   // 𝔹
+        token_set_integer: $ => token('Integer'),   // ℤ
+        token_set_natural: $ => token('Natural'),   // ℕ
+        token_set_positive: $ => token('Positive'), // ℕ^+
+        token_set_strings: $ => token('String'),    // 𝕊 or Σ^*
 
         // -----------------------------------------------------------------------
         // Sub-nets
@@ -171,13 +186,7 @@ module.exports = grammar({
 
         public_places: $ => seq(
             keyword('public'),
-            $.name,
-            repeat(
-                seq(
-                    ',',
-                    $.name
-                )
-            )
+            $._name_list,
         ),
 
         // -----------------------------------------------------------------------
@@ -367,9 +376,20 @@ module.exports = grammar({
             $.boolean,
             $.unsigned,
             $.infinity,
-            $.quoted_string
-            //$.tuple_value,
-            //$.set_value
+            $.quoted_string,
+            $.set_value,
+            $.multiset_value,
+            $.tuple_value
+        ),
+
+        _value_list: $ => seq(
+            $._value,
+            repeat(
+                seq(
+                    ',',
+                    $._value
+                )
+            )
         ),
 
         boolean: $ => choice(
@@ -389,6 +409,54 @@ module.exports = grammar({
                 repeat(STRING_CHAR),
                 token.immediate('"'),
             )
+        ),
+
+        set_value: $ => seq(
+            '{',
+            $._value_list,
+            '}'
+        ),
+
+        multiset_value: $ => seq(
+            '[',
+            $.counted_value,
+            repeat(
+                seq(
+                    ',',
+                    $.counted_value
+                )
+            ),
+            ']'
+        ),
+
+        counted_value: $ => seq(
+            field('value', $._value),
+            operator('*'),
+            field(
+                'count',
+                choice(
+                    $.boolean,
+                    $.unsigned,
+                    $.infinity,
+                    $.name
+                )
+            )
+        ),
+
+        _value_list: $ => seq(
+            $._value,
+            repeat(
+                seq(
+                    ',',
+                    $._value
+                )
+            )
+        ),
+
+        tuple_value: $ => seq(
+            '<',
+            $._value_list,
+            '>'
         ),
 
         // -----------------------------------------------------------------------

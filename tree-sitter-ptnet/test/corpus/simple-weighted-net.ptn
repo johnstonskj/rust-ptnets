@@ -3,7 +3,7 @@ Simple weighted net
 ===================
 
 net example {
-  tokens N+
+  tokens Positive
   
   place p0 {
     capacity = 2
@@ -29,7 +29,9 @@ net example {
 (source_file
   (net_def
     (name)
-    (token_set_positive)
+    (tokens
+      (token_counter
+        (token_set_positive)))
     (place_def
       (name)
       (place_body

@@ -3,7 +3,7 @@ Empty net with tokens
 =====================
 
 net example {
-  tokens B
+  tokens {Red, Green, Blue} * Natural
 }
 
 ---
@@ -11,5 +11,12 @@ net example {
 (source_file
   (net_def
     (name)
-    (token_set_boolean)))
+    (tokens
+      (token_value
+        (set_type
+          (name)
+          (name)
+          (name)))
+      (token_counter
+        (token_set_natural)))))
 
