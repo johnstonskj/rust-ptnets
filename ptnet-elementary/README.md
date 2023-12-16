@@ -5,13 +5,16 @@ This crate provides an implementation of the
 
 ## Example
 
-``` rust
+```rust
 use ptnet_core::{
-    net::{Net},
+    fmt::{print_net, NetMatrixFormatter},
+    net::Net,
     sim::{Marking, Simulation},
+    trace::{MatrixTracer, TraceableSimulation},
 };
-use pnet_elementary::{
-    ElementaryNet, ElementarySimulation,SimpleMarking, SimpleMarkingFormatter
+use ptnet_elementary::{
+    Dot, ElementaryNet, ElementaryNetBuilder, ElementarySimulation, GraphvizNetFormatter,
+    SimpleArc, SimpleMarking, SimplePlace, SimpleTransition,
 };
 
 let mut net = ElementaryNet::default();
@@ -24,24 +27,43 @@ net.add_arc(p0, t0);
 net.add_arc(t0, p1);
 net.add_arc(p1, t1);
 net.add_arc(t1, p2);
-println!("{:?}", net);
+
+println!("-----");
+let mut f = NetMatrixFormatter::default();
+print_net(&net, &mut f).unwrap();
+println!("-----");
+let mut f = GraphvizNetFormatter::default();
+print_net(&net, &mut f).unwrap();
+println!("-----");
 
 let mut im = SimpleMarking::from(&net);
 im.mark(p0, Dot::from(true));
 
-let f = SimpleMarkingFormatter::new(net.places(), net.transitions());
-let mut sim = ElementarySimulation::new(&net, im.clone());
-
-f.format_with_transitions(&im, sim.enabled());
+let tracer: MatrixTracer<
+    SimplePlace,
+    SimpleTransition,
+    SimpleArc,
+    ElementaryNet,
+    Dot,
+    SimpleMarking,
+    ElementarySimulation,
+> = MatrixTracer::default();
+let mut sim = ElementarySimulation::new(net.into(), im.clone());
+sim.add_tracer(tracer.into());
 
 while !sim.is_complete().unwrap_or_default() {
-    let marking = sim.step().unwrap().clone();
-    let enabled = sim.enabled();
-    f.format_with_transitions(&marking, enabled);
+    sim.step().unwrap();
 }
 ```
 
 ## Changes
+
+**Version 0.1.2**
+
+* Feature: update core to `v0.1.2` and adjust to changes in core traits.
+* Feature: move Graphviz formatter to new `NetFormatter` and `MarkedNetFormatter` interfaces.
+* Feature: move net matrix to core crate.
+* Feature: add calls to tracer from within `ElementarySimulation`.
 
 **Version 0.1.1**
 
