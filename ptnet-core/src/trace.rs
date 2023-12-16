@@ -106,14 +106,14 @@ pub trait TraceableSimulation: Simulation {
     fn add_tracer<T>(&mut self, tracer: Rc<T>)
     where
         T: SimulationTracer<
-            Place = Self::Place,
-            Transition = Self::Transition,
-            Arc = Self::Arc,
-        Net = Self::Net,
-            Tokens = Self::Tokens,
-            Marking = Self::Marking,
-            Simulation = Self,
-        > + 'static;
+                Place = Self::Place,
+                Transition = Self::Transition,
+                Arc = Self::Arc,
+                Net = Self::Net,
+                Tokens = Self::Tokens,
+                Marking = Self::Marking,
+                Simulation = Self,
+            > + 'static;
 
     ///
     /// Remove any tracer associated with this simulation. If no tracer is associated this method
@@ -145,13 +145,7 @@ where
     N: Net<Place = P, Transition = T, Arc = A>,
     C: Tokens,
     M: Marking<Tokens = C>,
-    S: Simulation<
-        Place = P,
-        Transition = T,
-        Arc = A,
-        Tokens = C,
-        Marking = M,
-    >,
+    S: Simulation<Place = P, Transition = T, Arc = A, Tokens = C, Marking = M>,
 {
     net: PhantomData<N>,
     sim: PhantomData<S>,
@@ -174,16 +168,10 @@ where
     N: Net<Place = P, Transition = T, Arc = A>,
     C: Tokens,
     M: Marking<Tokens = C>,
-    S: Simulation<
-        Place = P,
-        Transition = T,
-        Arc = A,
-        Tokens = C,
-        Marking = M,
-    >,
+    S: Simulation<Place = P, Transition = T, Arc = A, Tokens = C, Marking = M>,
 {
     fn default() -> Self {
-       Self::new(false)
+        Self::new(false)
     }
 }
 
@@ -195,13 +183,7 @@ where
     N: Net<Place = P, Transition = T, Arc = A>,
     C: Tokens,
     M: Marking<Tokens = C>,
-    S: Simulation<
-        Place = P,
-        Transition = T,
-        Arc = A,
-        Tokens = C,
-        Marking = M,
-    >,
+    S: Simulation<Place = P, Transition = T, Arc = A, Tokens = C, Marking = M>,
 {
     type Place = P;
     type Transition = T;
@@ -252,19 +234,17 @@ where
             places
                 .iter()
                 .map(|id| if self.show_empty {
-                    format!(
-                        "{:#^FORMAT_FIELD_WIDTH$}",
-                        marking.marking(id).to_string()
-                    )
+                    format!("{:#^FORMAT_FIELD_WIDTH$}", marking.marking(id).to_string())
                 } else {
-                    format!(
-                        "{:^FORMAT_FIELD_WIDTH$}",
-                        marking.marking(id).to_string()
-                    )
+                    format!("{:^FORMAT_FIELD_WIDTH$}", marking.marking(id).to_string())
                 })
                 .chain(transitions.iter().map(|id| format!(
                     "{:^FORMAT_FIELD_WIDTH$}",
-                    if enabled.contains(id) { TRANSITION_ENABLED } else { TRANSITION_DISABLED }
+                    if enabled.contains(id) {
+                        TRANSITION_ENABLED
+                    } else {
+                        TRANSITION_DISABLED
+                    }
                 )))
                 .collect::<Vec<String>>()
                 .join(" | ")
@@ -280,23 +260,22 @@ where
     N: Net<Place = P, Transition = T, Arc = A>,
     C: Tokens,
     M: Marking<Tokens = C>,
-    S: Simulation<
-        Place = P,
-        Transition = T,
-        Arc = A,
-        Tokens = C,
-        Marking = M,
-    >,
+    S: Simulation<Place = P, Transition = T, Arc = A, Tokens = C, Marking = M>,
 {
     pub fn new(show_empty: bool) -> Self {
-         Self { net: Default::default(), sim: Default::default(), show_empty }
+        Self {
+            net: Default::default(),
+            sim: Default::default(),
+            show_empty,
+        }
     }
 
     #[inline(always)]
     fn columns(&self, net: &<S as Simulation>::Net) -> (Vec<NodeId>, Vec<NodeId>) {
         let mut places: Vec<NodeId> = net.places().iter().map(|place| place.id()).collect();
         places.sort();
-        let mut transitions: Vec<NodeId> = net.transitions()
+        let mut transitions: Vec<NodeId> = net
+            .transitions()
             .iter()
             .map(|transition| transition.id())
             .collect();

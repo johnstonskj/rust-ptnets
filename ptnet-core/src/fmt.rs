@@ -205,7 +205,9 @@ where
     N: Net<Place = P, Transition = T, Arc = A>,
 {
     fn default() -> Self {
-        Self { nothing: Default::default() }
+        Self {
+            nothing: Default::default(),
+        }
     }
 }
 
