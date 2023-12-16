@@ -10,6 +10,8 @@ executed.
 use crate::net::{Arc, Net, Place, Transition};
 use crate::sim::{Marking, Simulation, Step, Tokens};
 use crate::NodeId;
+use std::marker::PhantomData;
+use std::rc::Rc;
 
 // ------------------------------------------------------------------------------------------------
 // Public Types
@@ -32,6 +34,7 @@ use crate::NodeId;
 ///    1. step ended
 /// 1. simulation ended
 ///
+#[allow(unused_variables)]
 pub trait SimulationTracer {
     type Place: Place;
     type Transition: Transition;
@@ -51,43 +54,43 @@ pub trait SimulationTracer {
     /// This event is generated when the simulation takes its first step, but before the
     /// `step_started` event.
     ///
-    fn started(&self);
+    fn started(&self, sim: &Self::Simulation) {}
 
     ///
     /// This event is generated when the simulation takes a step. It is generated before any
     /// evaluation of the net marking.
     ///
-    fn step_started(&self, step: Step);
+    fn step_started(&self, step: Step, sim: &Self::Simulation) {}
 
     ///
     /// This is generated for any place that has had its tokens updated, either added or
     /// subtracted.
     ///
-    fn place_updated(&self, place: NodeId);
+    fn place_updated(&self, place: NodeId, sim: &Self::Simulation) {}
 
     ///
     /// This is generated when a transition is fired. At this point all input tokens have been
     /// consumed from the preset but no output tokens have been transmitted.
     ///
-    fn transition_started(&self, transition: NodeId);
+    fn transition_started(&self, transition: NodeId, sim: &Self::Simulation) {}
 
     ///
     /// This is generated when a transition has been completed. At this point all output tokens
     /// have been transmitted to the postset.
     ///
-    fn transition_ended(&self, transition: NodeId);
+    fn transition_ended(&self, transition: NodeId, sim: &Self::Simulation) {}
 
     ///
     /// This event is generated when the simulation completes a step. It is generated after all
     /// enabled transitions have fired.
     ///
-    fn step_ended(&self, step: Step);
+    fn step_ended(&self, step: Step, sim: &Self::Simulation) {}
 
     ///
     /// This event is generated if, and when, the simulation determines that the net is
     /// terminated.
     ///
-    fn ended(&self);
+    fn ended(&self, sim: &Self::Simulation) {}
 }
 
 ///
@@ -97,23 +100,207 @@ pub trait SimulationTracer {
 /// missed events will be delivered.
 ///
 pub trait TraceableSimulation: Simulation {
-    type SimulationTracer: SimulationTracer<
-        Place = Self::Place,
-        Transition = Self::Transition,
-        Arc = Self::Arc,
-        Tokens = Self::Tokens,
-        Marking = Self::Marking,
-        Simulation = Self,
-    >;
-
     ///
     /// Add a tracer to this simulation.
     ///
-    fn add_tracer(&mut self, tracer: Self::SimulationTracer);
+    fn add_tracer<T>(&mut self, tracer: Rc<T>)
+    where
+        T: SimulationTracer<
+            Place = Self::Place,
+            Transition = Self::Transition,
+            Arc = Self::Arc,
+        Net = Self::Net,
+            Tokens = Self::Tokens,
+            Marking = Self::Marking,
+            Simulation = Self,
+        > + 'static;
 
     ///
     /// Remove any tracer associated with this simulation. If no tracer is associated this method
     /// does nothing.
     ///
     fn remove_tracer(&mut self);
+}
+
+///
+/// This type implements the tracer trait to output a matrix which contains the tokens value for
+/// each place, and a flag for enabled transitions, on completion of each step.
+///
+/// ## Example
+///
+/// Given the simple net \\(\circ\rightarrow\rule[-1pt]{3pt}{0.75em}\rightarrow\circ\\), the matrix
+/// is as follows:
+///
+/// |    # |   p0 |   p1 |   t0 |
+/// |------|------|------|------|
+/// |    0 |   ●  |      |   Y  |
+/// |    1 |      |   ●  |      |
+///
+#[derive(Debug)]
+pub struct MatrixTracer<P, T, A, N, C, M, S>
+where
+    P: Place,
+    T: Transition,
+    A: Arc,
+    N: Net<Place = P, Transition = T, Arc = A>,
+    C: Tokens,
+    M: Marking<Tokens = C>,
+    S: Simulation<
+        Place = P,
+        Transition = T,
+        Arc = A,
+        Tokens = C,
+        Marking = M,
+    >,
+{
+    net: PhantomData<N>,
+    sim: PhantomData<S>,
+    show_empty: bool,
+}
+
+// ------------------------------------------------------------------------------------------------
+// Implementations
+// ------------------------------------------------------------------------------------------------
+
+const FORMAT_FIELD_WIDTH: usize = 6;
+const TRANSITION_ENABLED: &str = "Y";
+const TRANSITION_DISABLED: &str = "";
+
+impl<P, T, A, N, C, M, S> Default for MatrixTracer<P, T, A, N, C, M, S>
+where
+    P: Place,
+    T: Transition,
+    A: Arc,
+    N: Net<Place = P, Transition = T, Arc = A>,
+    C: Tokens,
+    M: Marking<Tokens = C>,
+    S: Simulation<
+        Place = P,
+        Transition = T,
+        Arc = A,
+        Tokens = C,
+        Marking = M,
+    >,
+{
+    fn default() -> Self {
+       Self::new(false)
+    }
+}
+
+impl<P, T, A, N, C, M, S> SimulationTracer for MatrixTracer<P, T, A, N, C, M, S>
+where
+    P: Place,
+    T: Transition,
+    A: Arc,
+    N: Net<Place = P, Transition = T, Arc = A>,
+    C: Tokens,
+    M: Marking<Tokens = C>,
+    S: Simulation<
+        Place = P,
+        Transition = T,
+        Arc = A,
+        Tokens = C,
+        Marking = M,
+    >,
+{
+    type Place = P;
+    type Transition = T;
+    type Arc = A;
+    type Net = N;
+    type Tokens = C;
+    type Marking = M;
+    type Simulation = S;
+
+    fn started(&self, sim: &Self::Simulation) {
+        let (places, transitions) = self.columns(&sim.net());
+
+        println!(
+            "| {:>FORMAT_FIELD_WIDTH$} | {} |",
+            "#",
+            places
+                .iter()
+                .map(|id| format!("{:^FORMAT_FIELD_WIDTH$}", id.as_ref()))
+                .chain(
+                    transitions
+                        .iter()
+                        .map(|id| format!("{:^FORMAT_FIELD_WIDTH$}", id.as_ref()))
+                )
+                .collect::<Vec<String>>()
+                .join(" | ")
+        );
+
+        let fields = places.len() + transitions.len();
+        let width = FORMAT_FIELD_WIDTH + 2; // for pad spaces.
+        println!(
+            "|{}|",
+            (0..=fields)
+                .map(|_| format!("{:-<width$}", ""))
+                .collect::<Vec<String>>()
+                .join("+")
+        );
+    }
+
+    fn step_ended(&self, step: Step, sim: &Self::Simulation) {
+        let (places, transitions) = self.columns(&sim.net());
+
+        let marking = sim.current_marking();
+        let enabled = sim.enabled();
+
+        println!(
+            "| {:>FORMAT_FIELD_WIDTH$} | {} |",
+            step.as_ref(),
+            places
+                .iter()
+                .map(|id| if self.show_empty {
+                    format!(
+                        "{:#^FORMAT_FIELD_WIDTH$}",
+                        marking.marking(id).to_string()
+                    )
+                } else {
+                    format!(
+                        "{:^FORMAT_FIELD_WIDTH$}",
+                        marking.marking(id).to_string()
+                    )
+                })
+                .chain(transitions.iter().map(|id| format!(
+                    "{:^FORMAT_FIELD_WIDTH$}",
+                    if enabled.contains(id) { TRANSITION_ENABLED } else { TRANSITION_DISABLED }
+                )))
+                .collect::<Vec<String>>()
+                .join(" | ")
+        );
+    }
+}
+
+impl<P, T, A, N, C, M, S> MatrixTracer<P, T, A, N, C, M, S>
+where
+    P: Place,
+    T: Transition,
+    A: Arc,
+    N: Net<Place = P, Transition = T, Arc = A>,
+    C: Tokens,
+    M: Marking<Tokens = C>,
+    S: Simulation<
+        Place = P,
+        Transition = T,
+        Arc = A,
+        Tokens = C,
+        Marking = M,
+    >,
+{
+    pub fn new(show_empty: bool) -> Self {
+         Self { net: Default::default(), sim: Default::default(), show_empty }
+    }
+
+    #[inline(always)]
+    fn columns(&self, net: &<S as Simulation>::Net) -> (Vec<NodeId>, Vec<NodeId>) {
+        let mut places: Vec<NodeId> = net.places().iter().map(|place| place.id()).collect();
+        places.sort();
+        let mut transitions: Vec<NodeId> = net.transitions()
+            .iter()
+            .map(|transition| transition.id())
+            .collect();
+        transitions.sort();
+        (places, transitions)
+    }
 }

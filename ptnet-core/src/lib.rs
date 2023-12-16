@@ -204,12 +204,14 @@ use std::{
 // Public Types  Common
 // ------------------------------------------------------------------------------------------------
 
+pub type NodeIdValue = u64;
+
 ///
 /// A node identifier is a numeric value assigned by the Net implementation and which is guaranteed
 /// unique across node types (and arcs if they are identified).
 ///
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct NodeId(usize);
+pub struct NodeId(NodeIdValue);
 
 ///
 /// The trait implemented by Net nodes that have a Net-assigned identity.
@@ -282,13 +284,13 @@ impl Display for NodeId {
     }
 }
 
-impl AsRef<usize> for NodeId {
-    fn as_ref(&self) -> &usize {
+impl AsRef<NodeIdValue> for NodeId {
+    fn as_ref(&self) -> &NodeIdValue {
         &self.0
     }
 }
 
-impl From<NodeId> for usize {
+impl From<NodeId> for NodeIdValue {
     fn from(value: NodeId) -> Self {
         value.0
     }
@@ -299,8 +301,16 @@ impl NodeId {
     /// Construct a new NodeId from a given numeric value. This is inherently unsafe outside of the
     /// libraries themselves. However, it can be useful in testing and so it remains public.
     ///
-    pub fn new_unchecked(id: usize) -> Self {
+    pub fn new_unchecked(id: NodeIdValue) -> Self {
         Self(id)
+    }
+
+    pub fn as_place_string(&self) -> String {
+        format!("p{}", self)
+    }
+
+    pub fn as_transition_string(&self) -> String {
+        format!("t{}", self)
     }
 }
 

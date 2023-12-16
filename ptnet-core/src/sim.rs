@@ -9,19 +9,24 @@ use crate::error::Error;
 use crate::net::{Arc, Net, Place, Transition};
 use crate::NodeId;
 use std::ops::{Add, Sub};
-use std::{fmt::Debug, fmt::Display, hash::Hash};
+use std::{fmt::Debug, fmt::Display, hash::Hash, rc::Rc};
 
 // ------------------------------------------------------------------------------------------------
 // Public Types  Marking
 // ------------------------------------------------------------------------------------------------
 
 ///
+/// Note that this trait requires an implementation of `Display` which by convention will return an
+/// empty string if `is_empty` is `true`. To return a representation of the empty value use
+/// alternate marker in the format, `"{#}"` instead of `"{}"`.
 ///
+/// For example, an elementary net allows only boolean tokens and will write `"●"` for a present
+/// token and `"○"` for the alternate representation for an empty token.
 ///
 pub trait Tokens:
-    AsRef<Self::Value> + Clone + Debug + Default + PartialEq + Eq + PartialOrd + Ord + Hash
+    AsRef<Self::Value> + Clone + Debug + Default + Display + PartialEq + Eq + PartialOrd + Ord + Hash
 {
-    type Value: Default + PartialEq + Eq + PartialOrd + Ord + Hash;
+    type Value: Default + Display + PartialEq + Eq + PartialOrd + Ord + Hash;
 
     fn value(&self) -> &Self::Value;
     fn set_value(&mut self, value: Self::Value);
@@ -37,7 +42,7 @@ pub trait Tokens:
 ///
 ///
 pub trait Marking: Clone + Debug {
-    type Value: Default + PartialEq + Eq + PartialOrd + Ord + Hash;
+    type Value: Default + Display + PartialEq + Eq + PartialOrd + Ord + Hash;
     type Tokens: Tokens<Value = Self::Value>;
 
     fn step(&self) -> Step;
@@ -48,20 +53,6 @@ pub trait Marking: Clone + Debug {
     fn reset(&mut self, id: NodeId) {
         self.mark(id, Self::Tokens::default());
     }
-}
-
-///
-///
-///
-pub trait MarkingFormatter: Debug {
-    type Place: Place;
-    type Transition: Transition;
-    type Tokens: Tokens;
-    type Marking: Marking<Tokens = Self::Tokens>;
-
-    fn new(places: Vec<&Self::Place>, transitions: Vec<&Self::Transition>) -> Self;
-    fn format(&self, marking: &Self::Marking);
-    fn format_with_transitions(&self, marking: &Self::Marking, enabled: Vec<NodeId>);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -100,7 +91,7 @@ pub trait Simulation: Debug {
     ///
     /// Return a reference to the net that is being executed.
     ///
-    fn net(&self) -> &Self::Net;
+    fn net(&self) -> Rc<Self::Net>;
 
     ///
     /// Return a reference to the current marking of the net. If the simulation has not been
@@ -117,18 +108,18 @@ pub trait Simulation: Debug {
     ///
     /// Advance the simulation by one step returning the marking after the step has been taken.
     ///
-    fn step(&mut self) -> Result<&Self::Marking, Error>;
+    fn step(&mut self) -> Result<(), Error>;
 
     ///
     /// Advance the simulation by `steps` returning the marking after all steps were taken.
     ///
-    fn steps(&mut self, steps: Duration) -> Result<&Self::Marking, Error>;
+    fn steps(&mut self, steps: Duration) -> Result<(), Error>;
 
     ///
     /// Return a list of node identifiers corresponding to all the enabled transitions at this
     /// step.
     ///
-    fn enabled(&mut self) -> Vec<NodeId>;
+    fn enabled(&self) -> Vec<NodeId>;
 
     ///
     /// Return `true` if `transition` is enabled at this step, else `false`.

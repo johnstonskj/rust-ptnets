@@ -7,11 +7,14 @@ This crate provides an implementation of the
 
 ```rust
 use ptnet_core::{
-    net::{Net},
-    sim::{Marking, MarkingFormatter, Simulation},
+    fmt::{print_net, NetMatrixFormatter},
+    net::Net,
+    sim::{Marking, Simulation},
+    trace::{MatrixTracer, TraceableSimulation},
 };
 use ptnet_elementary::{
-    Dot, ElementaryNet, ElementarySimulation,SimpleMarking, SimpleMarkingFormatter
+    Dot, ElementaryNet, ElementaryNetBuilder, ElementarySimulation, GraphvizNetFormatter,
+    SimpleArc, SimpleMarking, SimplePlace, SimpleTransition,
 };
 
 let mut net = ElementaryNet::default();
@@ -24,20 +27,32 @@ net.add_arc(p0, t0);
 net.add_arc(t0, p1);
 net.add_arc(p1, t1);
 net.add_arc(t1, p2);
-println!("{:?}", net);
+
+println!("-----");
+let mut f = NetMatrixFormatter::default();
+print_net(&net, &mut f).unwrap();
+println!("-----");
+let mut f = GraphvizNetFormatter::default();
+print_net(&net, &mut f).unwrap();
+println!("-----");
 
 let mut im = SimpleMarking::from(&net);
 im.mark(p0, Dot::from(true));
 
-let f = SimpleMarkingFormatter::new(net.places(), net.transitions());
-let mut sim = ElementarySimulation::new(&net, im.clone());
-
-f.format_with_transitions(&im, sim.enabled());
+let tracer: MatrixTracer<
+    SimplePlace,
+    SimpleTransition,
+    SimpleArc,
+    ElementaryNet,
+    Dot,
+    SimpleMarking,
+    ElementarySimulation,
+> = MatrixTracer::default();
+let mut sim = ElementarySimulation::new(net.into(), im.clone());
+sim.add_tracer(tracer.into());
 
 while !sim.is_complete().unwrap_or_default() {
-    let marking = sim.step().unwrap().clone();
-    let enabled = sim.enabled();
-    f.format_with_transitions(&marking, enabled);
+    sim.step().unwrap();
 }
 ```
 
@@ -85,13 +100,16 @@ while !sim.is_complete().unwrap_or_default() {
 )]
 
 use ptnet_core::error::Error;
+use ptnet_core::fmt::{MarkedNetFormatter, NetFormatter};
 use ptnet_core::net::{Arc, Net, NetBuilder, Place, PlaceBuilder, Transition, TransitionBuilder};
-use ptnet_core::sim::{Duration, Marking, MarkingFormatter, Simulation, Step, Tokens};
-use ptnet_core::{HasIdentity, HasLabel, NodeId};
+use ptnet_core::sim::{Duration, Marking, Simulation, Step, Tokens};
+use ptnet_core::trace::{SimulationTracer, TraceableSimulation};
+use ptnet_core::{HasIdentity, HasLabel, NodeId, NodeIdValue};
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
+use std::fmt::{Debug, Display};
 use std::rc::Rc;
 
 // ------------------------------------------------------------------------------------------------
@@ -102,31 +120,46 @@ use std::rc::Rc;
 // Public Types  Net
 // ------------------------------------------------------------------------------------------------
 
+///
+/// A simple implementation of a net Place with no extensions.
+///
 #[derive(Debug)]
 pub struct SimplePlace {
     id: NodeId,
     label: Option<String>,
 }
 
+///
+/// A simple implementation of a net Transition with no extensions.
+///
 #[derive(Debug)]
 pub struct SimpleTransition {
     id: NodeId,
     label: Option<String>,
 }
 
+///
+/// A simple implementation of a net Arc with no extensions.
+///
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct SimpleArc {
     source: NodeId,
     target: NodeId,
 }
 
+///
+/// A simple implementation of an Elementary net (EN) with no extensions.
+///
 #[derive(Debug, Default)]
 pub struct ElementaryNet {
-    next_id: usize,
+    next_id: NodeIdValue,
     places: HashMap<NodeId, SimplePlace>,
     transitions: HashMap<NodeId, SimpleTransition>,
     arcs: HashSet<SimpleArc>,
 }
+
+#[derive(Debug)]
+pub struct GraphvizNetFormatter;
 
 // ------------------------------------------------------------------------------------------------
 // Public Types  Markings
@@ -143,21 +176,27 @@ pub struct SimpleMarking {
     markings: HashMap<NodeId, Dot>,
 }
 
-#[derive(Debug)]
-pub struct SimpleMarkingFormatter {
-    places: Vec<NodeId>,
-    transitions: Vec<NodeId>,
-}
-
 // ------------------------------------------------------------------------------------------------
 // Public Types  Simulation
 // ------------------------------------------------------------------------------------------------
 
-#[derive(Debug)]
-pub struct ElementarySimulation<'a> {
-    net: &'a ElementaryNet,
+pub struct ElementarySimulation {
+    net: Rc<ElementaryNet>,
     marking: SimpleMarking,
     step: Step,
+    tracer: Option<
+        Rc<
+            dyn SimulationTracer<
+                Place = SimplePlace,
+                Transition = SimpleTransition,
+                Arc = SimpleArc,
+                Net = ElementaryNet,
+                Tokens = Dot,
+                Marking = SimpleMarking,
+                Simulation = ElementarySimulation,
+            >,
+        >,
+    >,
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -381,7 +420,7 @@ impl Net for ElementaryNet {
     }
 
     fn add_place(&mut self) -> NodeId {
-        let id = NodeId::new_unchecked(self.next_id());
+        let id = self.next_id();
         self.places.insert(id, SimplePlace::new(id));
         id
     }
@@ -390,14 +429,14 @@ impl Net for ElementaryNet {
     where
         S: Into<String>,
     {
-        let id = NodeId::new_unchecked(self.next_id());
+        let id = self.next_id();
         self.places
             .insert(id, SimplePlace::new_with_label(id, label.into()));
         id
     }
 
     fn add_transition(&mut self) -> NodeId {
-        let id = NodeId::new_unchecked(self.next_id());
+        let id = self.next_id();
         self.transitions.insert(id, SimpleTransition::new(id));
         id
     }
@@ -406,7 +445,7 @@ impl Net for ElementaryNet {
     where
         S: Into<String>,
     {
-        let id = NodeId::new_unchecked(self.next_id());
+        let id = self.next_id();
         self.transitions
             .insert(id, SimpleTransition::new_with_label(id, label.into()));
         id
@@ -424,40 +463,84 @@ impl Net for ElementaryNet {
 }
 
 impl ElementaryNet {
-    fn next_id(&mut self) -> usize {
+    fn next_id(&mut self) -> NodeId {
         let id = self.next_id;
         self.next_id += 1;
-        id
+        NodeId::new_unchecked(id)
     }
+}
 
-    pub fn to_dot_graph(
+// ------------------------------------------------------------------------------------------------
+
+impl Default for GraphvizNetFormatter {
+    fn default() -> Self {
+        Self {}
+    }
+}
+
+impl NetFormatter for GraphvizNetFormatter {
+    type Place = SimplePlace;
+    type Transition = SimpleTransition;
+    type Arc = SimpleArc;
+    type Net = ElementaryNet;
+
+    fn fmt_net<W: std::io::Write>(&self, w: &mut W, net: &Self::Net) -> Result<(), Error> {
+        self.fmt_internal(w, net, None, None)
+    }
+}
+
+impl MarkedNetFormatter for GraphvizNetFormatter {
+    type Place = SimplePlace;
+    type Transition = SimpleTransition;
+    type Arc = SimpleArc;
+    type Net = ElementaryNet;
+    type Tokens = Dot;
+    type Marking = SimpleMarking;
+
+    fn fmt_marked_net<W: std::io::Write>(
         &self,
-        marking: Option<SimpleMarking>,
-        enabled: Option<Vec<NodeId>>,
-    ) -> String {
+        w: &mut W,
+        net: &Self::Net,
+        marking: &Self::Marking,
+        enabled: Option<&[NodeId]>,
+    ) -> Result<(), Error> {
+        self.fmt_internal(w, net, Some(marking), enabled)
+    }
+}
+
+impl GraphvizNetFormatter {
+    fn fmt_internal<W: std::io::Write>(
+        &self,
+        w: &mut W,
+        net: &ElementaryNet,
+        marking: Option<&SimpleMarking>,
+        enabled: Option<&[NodeId]>,
+    ) -> Result<(), Error> {
         let separation = "0.75";
         let rank_direction = "LR";
-        let places = self
+        let places = net
             .places
             .values()
-            .map(|place| self.place_to_dot(place, &marking))
+            .map(|place| self.place_to_dot(place, marking))
             .collect::<Vec<String>>()
             .join("\n");
-        let transitions = self
+        let transitions = net
             .transitions
             .values()
             .map(|transition| self.transition_to_dot(transition, &enabled))
             .collect::<Vec<String>>()
             .join("\n");
-        let arcs = self
+        let arcs = net
             .arcs()
             .iter()
-            .map(|arc| self.arc_to_dot(arc))
+            .map(|arc| self.arc_to_dot(arc, net))
             .collect::<Vec<String>>()
             .join("\n");
 
-        format!(
+        writeln!(
+            w,
             "strict digraph {{
+    id=\"net0\";
     bgcolor=\"transparent\";
     fontname=\"Helvetica Neue,Helvetica,Arial,sans-serif\";
     nodesep={separation};
@@ -473,10 +556,11 @@ impl ElementaryNet {
     // All arcs.
 {arcs}
 }}"
-        )
+        )?;
+        Ok(())
     }
 
-    fn place_to_dot(&self, place: &SimplePlace, marking: &Option<SimpleMarking>) -> String {
+    fn place_to_dot(&self, place: &SimplePlace, marking: Option<&SimpleMarking>) -> String {
         let id = format!("p{}", place.id());
         let label = if let Some(label) = place.label() {
             label
@@ -484,21 +568,19 @@ impl ElementaryNet {
             &id
         };
         let marking = if let Some(marking) = marking {
-            if *marking.marking(&place.id()).value() {
-                String::from("●")
-            } else {
-                String::new()
-            }
+            marking.marking(&place.id()).to_string()
         } else {
             String::new()
         };
-        format!("    {id} [shape=\"circle\"; label=\"{marking}\"; xlabel=\"{label}\"];")
+        format!(
+            "    {id} [id=\"{id}\"; shape=\"circle\"; label=\"{marking}\"; xlabel=\"{label}\"];"
+        )
     }
 
     fn transition_to_dot(
         &self,
         transition: &SimpleTransition,
-        enabled: &Option<Vec<NodeId>>,
+        enabled: &Option<&[NodeId]>,
     ) -> String {
         let id = format!("t{}", transition.id());
         let label = if let Some(label) = transition.label() {
@@ -515,22 +597,24 @@ impl ElementaryNet {
         } else {
             ("black", "darkgrey")
         };
-        format!("    {id} [shape=\"rectangle\"; style=\"filled\"; color=\"{line_color}\"; fillcolor=\"{fill_color}\"; height=0.5; width=0.1; label=\"\"; xlabel=\"{label}\"];")
+        format!("    {id} [id=\"{id}\"; shape=\"rectangle\"; style=\"filled\"; color=\"{line_color}\"; fillcolor=\"{fill_color}\"; height=0.5; width=0.1; label=\"\"; xlabel=\"{label}\"];")
     }
 
-    fn arc_to_dot(&self, arc: &SimpleArc) -> String {
-        let source = self.display_id(&arc.source());
-        let target = self.display_id(&arc.target());
-        format!("    {source} -> {target};")
+    fn arc_to_dot(&self, arc: &SimpleArc, net: &ElementaryNet) -> String {
+        let source = self.display_id(&arc.source(), net);
+        let target = self.display_id(&arc.target(), net);
+        // inhibitor: "odot"
+        // reset: "normalnormal"
+        format!("    {source} -> {target} [id=\"{source}_{target}\"; arrowhead=\"normal\"; arrowsize=1.0];")
     }
 
-    fn display_id(&self, id: &NodeId) -> String {
+    fn display_id(&self, id: &NodeId, net: &ElementaryNet) -> String {
         match (
-            self.places.contains_key(id),
-            self.transitions.contains_key(id),
+            net.places.contains_key(id),
+            net.transitions.contains_key(id),
         ) {
-            (true, false) => format!("p{}", id),
-            (false, true) => format!("t{}", id),
+            (true, false) => id.as_place_string(),
+            (false, true) => id.as_transition_string(),
             _ => panic!(),
         }
     }
@@ -539,6 +623,24 @@ impl ElementaryNet {
 // ------------------------------------------------------------------------------------------------
 // Implementations  Markings
 // ------------------------------------------------------------------------------------------------
+
+impl Display for Dot {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            if self.value {
+                "●"
+            } else {
+                if f.alternate() {
+                    "○"
+                } else {
+                    ""
+                }
+            }
+        )
+    }
+}
 
 impl From<bool> for Dot {
     fn from(value: bool) -> Self {
@@ -614,106 +716,20 @@ impl SimpleMarking {
 }
 
 // ------------------------------------------------------------------------------------------------
-
-const FORMAT_FIELD_WIDTH: usize = 6;
-
-impl MarkingFormatter for SimpleMarkingFormatter {
-    type Place = SimplePlace;
-    type Transition = SimpleTransition;
-    type Tokens = Dot;
-    type Marking = SimpleMarking;
-
-    fn new(places: Vec<&Self::Place>, transitions: Vec<&Self::Transition>) -> Self {
-        let mut places: Vec<NodeId> = places.iter().map(|place| place.id()).collect();
-        places.sort();
-        let mut transitions: Vec<NodeId> = transitions
-            .iter()
-            .map(|transition| transition.id())
-            .collect();
-        transitions.sort();
-
-        let me = Self {
-            places,
-            transitions,
-        };
-
-        println!(
-            "| {:>FORMAT_FIELD_WIDTH$} | {} |",
-            "#",
-            me.places
-                .iter()
-                .map(|id| format!("{:>FORMAT_FIELD_WIDTH$}", id.as_ref()))
-                .chain(
-                    me.transitions
-                        .iter()
-                        .map(|id| format!("{:>FORMAT_FIELD_WIDTH$}", id.as_ref()))
-                )
-                .collect::<Vec<String>>()
-                .join(" | ")
-        );
-
-        let fields = me.places.len() + me.transitions.len();
-        let width = FORMAT_FIELD_WIDTH + 2; // for pad spaces.
-        println!(
-            "|{}|",
-            (0..=fields)
-                .map(|_| format!("{:-<width$}", ""))
-                .collect::<Vec<String>>()
-                .join("+")
-        );
-
-        me
-    }
-
-    fn format(&self, marking: &Self::Marking) {
-        println!(
-            "| {:>FORMAT_FIELD_WIDTH$} | {} |",
-            marking.step(),
-            self.places
-                .iter()
-                .map(|id| format!(
-                    "{:^FORMAT_FIELD_WIDTH$}",
-                    if *marking.marking(id).value() {
-                        "Y"
-                    } else {
-                        ""
-                    }
-                ))
-                .chain((0..=self.transitions.len()).map(|_| format!("{:FORMAT_FIELD_WIDTH$}", "")))
-                .collect::<Vec<String>>()
-                .join(" | ")
-        );
-    }
-
-    fn format_with_transitions(&self, marking: &Self::Marking, enabled: Vec<NodeId>) {
-        println!(
-            "| {:>FORMAT_FIELD_WIDTH$} | {} |",
-            marking.step(),
-            self.places
-                .iter()
-                .map(|id| format!(
-                    "{:^FORMAT_FIELD_WIDTH$}",
-                    if *marking.marking(id).value() {
-                        "Y"
-                    } else {
-                        ""
-                    }
-                ))
-                .chain(self.transitions.iter().map(|id| format!(
-                    "{:^FORMAT_FIELD_WIDTH$}",
-                    if enabled.contains(id) { "Y" } else { "" }
-                )))
-                .collect::<Vec<String>>()
-                .join(" | ")
-        );
-    }
-}
-
-// ------------------------------------------------------------------------------------------------
 // Implementations  Simulation
 // ------------------------------------------------------------------------------------------------
 
-impl Simulation for ElementarySimulation<'_> {
+impl Debug for ElementarySimulation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ElementarySimulation")
+            .field("net", &self.net)
+            .field("marking", &self.marking)
+            .field("step", &self.step)
+            .field("tracer", &self.tracer.is_some())
+            .finish()
+    }
+}
+impl Simulation for ElementarySimulation {
     type Place = SimplePlace;
     type Transition = SimpleTransition;
     type Arc = SimpleArc;
@@ -721,8 +737,8 @@ impl Simulation for ElementarySimulation<'_> {
     type Tokens = Dot;
     type Marking = SimpleMarking;
 
-    fn net(&self) -> &Self::Net {
-        self.net
+    fn net(&self) -> Rc<Self::Net> {
+        self.net.clone()
     }
 
     fn current_marking(&self) -> &Self::Marking {
@@ -733,36 +749,57 @@ impl Simulation for ElementarySimulation<'_> {
         self.step
     }
 
-    fn step(&mut self) -> Result<&Self::Marking, Error> {
+    fn step(&mut self) -> Result<(), Error> {
         self.steps(Duration::ONE)
     }
 
-    fn steps(&mut self, steps: Duration) -> Result<&Self::Marking, Error> {
+    fn steps(&mut self, steps: Duration) -> Result<(), Error> {
+        match (&self.tracer, self.step) {
+            (Some(tracer), Step::ZERO) => {
+                tracer.started(self);
+            }
+            _ => {}
+        }
         for _ in 0..*steps.as_ref() {
             // 1. Get a list of all enabled transitions
-            let mut enabled: Vec<&Self::Transition> = self
-                .net
-                .transitions()
-                .into_iter()
-                .filter(|transition| self.is_enabled(transition))
-                .collect();
+            let mut enabled = self.enabled();
 
-            // 2. Shuffle the list, ensure the order of firing is non-deterministic.
-            enabled.shuffle(&mut thread_rng());
+            if enabled.is_empty() {
+                if let Some(tracer) = &self.tracer {
+                    tracer.ended(self);
+                }
+                break;
+            } else {
+                let this_step = self.step.next();
+                if let Some(tracer) = &self.tracer {
+                    tracer.step_started(this_step, self);
+                }
+                // 2. Shuffle the list, ensure the order of firing is non-deterministic.
+                enabled.shuffle(&mut thread_rng());
 
-            // 3. Fire all enabled transitions.
-            for transition in enabled {
-                self.fire(transition)?;
+                // 3. Fire all enabled transitions.
+                for transition in enabled {
+                    if let Some(tracer) = &self.tracer {
+                        tracer.transition_started(transition, self);
+                    }
+                    self.fire(transition)?;
+                    if let Some(tracer) = &self.tracer {
+                        tracer.transition_ended(transition, self);
+                    }
+                }
+
+                self.step = this_step;
+                self.marking.set_step(this_step);
+                if let Some(tracer) = &self.tracer {
+                    tracer.step_ended(this_step, self);
+                }
             }
-
-            self.step = self.step.next();
-            self.marking.set_step(self.step);
         }
 
-        Ok(self.current_marking())
+        Ok(())
     }
 
-    fn enabled(&mut self) -> Vec<NodeId> {
+    fn enabled(&self) -> Vec<NodeId> {
         self.net
             .transitions()
             .iter()
@@ -795,25 +832,47 @@ impl Simulation for ElementarySimulation<'_> {
     }
 }
 
-impl<'a> ElementarySimulation<'a> {
-    pub fn new(net: &'a ElementaryNet, initial: SimpleMarking) -> Self {
+impl TraceableSimulation for ElementarySimulation {
+    fn add_tracer<Tracer>(&mut self, tracer: Rc<Tracer>)
+    where
+        Tracer: SimulationTracer<
+                Place = SimplePlace,
+                Transition = Self::Transition,
+                Arc = Self::Arc,
+                Net = Self::Net,
+                Tokens = Self::Tokens,
+                Marking = Self::Marking,
+                Simulation = Self,
+            > + 'static,
+    {
+        self.tracer = Some(tracer);
+    }
+
+    fn remove_tracer(&mut self) {
+        self.tracer = None
+    }
+}
+
+impl ElementarySimulation {
+    pub fn new(net: Rc<ElementaryNet>, initial: SimpleMarking) -> Self {
         Self {
             net,
             marking: initial,
             step: Step::ZERO,
+            tracer: None,
         }
     }
 
     fn fire(
         &mut self,
-        transition: &<ElementarySimulation<'a> as Simulation>::Transition,
+        transition: NodeId,
     ) -> Result<(), Error> {
         // 1. Take tokens from inputs
-        for place_id in self.net.inputs(&transition.id()) {
+        for place_id in self.net.inputs(&transition) {
             self.marking.reset(*place_id);
         }
         // 2. Give tokens to outputs
-        for place_id in self.net.outputs(&transition.id()) {
+        for place_id in self.net.outputs(&transition) {
             self.marking.mark(*place_id, Dot::from(true));
         }
         Ok(())
@@ -1015,7 +1074,7 @@ fn add_place(builder: &Rc<RefCell<BuilderInternal>>) -> SimplePlaceBuilder {
 }
 
 fn get_place_with_id(builder: &Rc<RefCell<BuilderInternal>>, id: &NodeId) -> SimplePlaceBuilder {
-    if let Some(place) = builder.borrow().net.place(id) {
+    if let Some(place) = builder.borrow_mut().net.place(id) {
         let place = place.id();
         new_place(builder, place)
     } else {
@@ -1027,7 +1086,7 @@ fn get_remembered_place(
     builder: &Rc<RefCell<BuilderInternal>>,
     tag: &'static str,
 ) -> SimplePlaceBuilder {
-    let id = if let Some(id) = builder.borrow().memory.get(tag).cloned() {
+    let id = if let Some(id) = builder.borrow_mut().memory.get(tag).cloned() {
         id
     } else {
         panic!()
@@ -1053,7 +1112,7 @@ fn get_transition_with_id(
     builder: &Rc<RefCell<BuilderInternal>>,
     id: &NodeId,
 ) -> SimpleTransitionBuilder {
-    if let Some(transition) = builder.borrow().net.transition(id) {
+    if let Some(transition) = &((builder.borrow()).net).transition(id) {
         let transition = transition.id();
         new_transition(builder, transition)
     } else {
@@ -1081,128 +1140,4 @@ fn add_arc(builder: &Rc<RefCell<BuilderInternal>>, source: NodeId, target: NodeI
 #[inline(always)]
 fn tag_to_id(builder: &Rc<RefCell<BuilderInternal>>, tag: &'static str) -> Option<NodeId> {
     builder.borrow().memory.get(tag).cloned()
-}
-
-// ------------------------------------------------------------------------------------------------
-// Modules
-// ------------------------------------------------------------------------------------------------
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_make_simple_net() {
-        let mut net = ElementaryNet::default();
-        let p0 = net.add_place();
-        let p1 = net.add_place();
-        let p2 = net.add_place();
-        let t0 = net.add_transition();
-        let t1 = net.add_transition();
-        net.add_arc(p0, t0);
-        net.add_arc(t0, p1);
-        net.add_arc(p1, t1);
-        net.add_arc(t1, p2);
-        println!("{:?}", net);
-
-        let mut im = SimpleMarking::from(&net);
-        im.mark(p0, Dot::from(true));
-
-        let f = SimpleMarkingFormatter::new(net.places(), net.transitions());
-        let mut sim = ElementarySimulation::new(&net, im.clone());
-
-        f.format_with_transitions(&im, sim.enabled());
-
-        while !sim.is_complete().unwrap_or_default() {
-            let marking = sim.step().unwrap().clone();
-            let enabled = sim.enabled();
-            f.format_with_transitions(&marking, enabled);
-        }
-    }
-
-    #[test]
-    fn test_simple_net_builder() {
-        let mut builder = ElementaryNetBuilder::default();
-
-        builder
-            .place()
-            .with_label("start")
-            .to_transition()
-            .to_place()
-            .to_transition()
-            .to_place()
-            .with_label("end");
-        println!("{:?}", builder);
-
-        let net = builder.build();
-        println!("{:?}", net);
-
-        println!("{}", net.to_dot_graph(None, None));
-
-        let p0 = NodeId::new_unchecked(0);
-        let mut im = SimpleMarking::from(&net);
-        im.mark(p0, Dot::from(true));
-
-        let enabled = vec![NodeId::new_unchecked(1)];
-        println!("{}", net.to_dot_graph(Some(im), Some(enabled)));
-    }
-
-    #[test]
-    fn test_producer_consumer() {
-        let mut builder = ElementaryNetBuilder::default();
-
-        builder
-            .place()
-            .remember_as("p1")
-            .to_transition()
-            .with_label("fill")
-            .remember_as("fill")
-            .to_place()
-            .remember_as("p2")
-            .to_transition()
-            .with_label("produce")
-            .to_remembered("p1");
-
-        builder
-            .recall_transition("fill")
-            .to_place()
-            .with_label("b/full")
-            .to_transition()
-            .with_label("empty")
-            .remember_as("empty")
-            .to_place()
-            .to_transition()
-            .with_label("consume")
-            .to_place()
-            .remember_as("c1");
-
-        builder.arc(
-            builder.recall("c1").unwrap(),
-            builder.recall("empty").unwrap(),
-        );
-
-        let p2 = builder.recall("p2").unwrap();
-        let c1 = builder.recall("c1").unwrap();
-
-        let net = builder.build();
-        let mut im = SimpleMarking::from(&net);
-        im.mark_as(p2, true);
-        im.mark_as(c1, true);
-
-        let f = SimpleMarkingFormatter::new(net.places(), net.transitions());
-        let mut sim = ElementarySimulation::new(&net, im.clone());
-
-        println!(
-            "{}",
-            net.to_dot_graph(Some(im.clone()), Some(sim.enabled()))
-        );
-
-        f.format_with_transitions(&im, sim.enabled());
-
-        while !sim.is_complete().unwrap_or_default() && *sim.current_step().as_ref() < 100 {
-            let marking = sim.step().unwrap().clone();
-            let enabled = sim.enabled();
-            f.format_with_transitions(&marking, enabled);
-        }
-    }
 }

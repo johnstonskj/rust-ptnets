@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2023-12-12 Tue 13:59 -->
+<!-- 2023-12-14 Thu 10:22 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Notes on Petri Nets</title>
@@ -201,32 +201,55 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#orgac6b7fe">1. PNet Core</a>
+<li><a href="#org93dd274">1. PTNet Core</a>
 <ul>
-<li><a href="#org59a3c68">1.1. Net Core Module</a></li>
-<li><a href="#orgcc22bcf">1.2. Sim Core Module</a></li>
-<li><a href="#orgf905baf">1.3. Guarded Extension Module</a></li>
-<li><a href="#orge51fa7f">1.4. Inhibited Extension Module</a></li>
-<li><a href="#org45fcfd8">1.5. Timed Extension Module</a></li>
-<li><a href="#org72d18b0">1.6. Weighted Extension Module</a></li>
+<li><a href="#org4f7f21e">1.1. Net Core Module</a></li>
+<li><a href="#org03a2df0">1.2. Sim Core Module</a></li>
+<li><a href="#org7e5f0a2">1.3. Guarded Extension Module</a></li>
+<li><a href="#org30c6247">1.4. Inhibited Extension Module</a></li>
+<li><a href="#orgfe0f645">1.5. Timed Extension Module</a></li>
+<li><a href="#org2299473">1.6. Weighted Extension Module</a></li>
 </ul>
 </li>
-<li><a href="#orgc1a1b01">2. Elementary Nets</a></li>
+<li><a href="#orgbb9f90f">2. Elementary Nets</a></li>
+<li><a href="#org8dc87ea">3. Appendix: PTNet Language</a>
+<ul>
+<li><a href="#org380a616">3.1. PTNet Grammar</a></li>
+</ul>
+</li>
+<li><a href="#org1af8b43">4. Appendix: GraphViz</a>
+<ul>
+<li><a href="#orgdf28229">4.1. Net</a></li>
+<li><a href="#org6289154">4.2. Place</a></li>
+<li><a href="#org53c31c9">4.3. Transition</a></li>
+<li><a href="#org0c2ecce">4.4. Arc</a></li>
+<li><a href="#org31021f5">4.5. Sub-net</a></li>
+<li><a href="#orgdce197b">4.6. Colors</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
 
-<div id="org9570e70" class="figure">
+<div id="org1754d21" class="figure">
 <p><img src="pnet-first.svg" alt="pnet-first.svg" class="org-svg" />
 </p>
 <p><span class="figure-number">Figure 1: </span>Basic Petri Net Components</p>
 </div>
 
-<div id="outline-container-orgac6b7fe" class="outline-2">
-<h2 id="orgac6b7fe"><span class="section-number-2">1.</span> PNet Core</h2>
+<pre class="example" id="orgf007429">
+net net0 {
+  place p1, p2
+  transition t1
+  arc p1 -&gt; t1 -&gt; p2   
+}
+</pre>
+
+<div id="outline-container-org93dd274" class="outline-2">
+<h2 id="org93dd274"><span class="section-number-2">1.</span> PTNet Core</h2>
 <div class="outline-text-2" id="text-1">
 
-<div id="org852e3b0" class="figure">
+<div id="org6ebfa63" class="figure">
 <p><img src="pnets-model-core.svg" alt="pnets-model-core.svg" class="org-svg" />
 </p>
 <p><span class="figure-number">Figure 2: </span>Core Interfaces</p>
@@ -235,18 +258,18 @@
 
 
 
-<div id="orgf5395e3" class="figure">
+<div id="org304e6b4" class="figure">
 <p><img src="pnets-model-packages.svg" alt="pnets-model-packages.svg" class="org-svg" />
 </p>
 <p><span class="figure-number">Figure 3: </span>Core Modules</p>
 </div>
 </div>
 
-<div id="outline-container-org59a3c68" class="outline-3">
-<h3 id="org59a3c68"><span class="section-number-3">1.1.</span> Net Core Module</h3>
+<div id="outline-container-org4f7f21e" class="outline-3">
+<h3 id="org4f7f21e"><span class="section-number-3">1.1.</span> Net Core Module</h3>
 <div class="outline-text-3" id="text-1-1">
 
-<div id="org9904b67" class="figure">
+<div id="org483cf3c" class="figure">
 <p><img src="pnets-net-model.svg" alt="pnets-net-model.svg" class="org-svg" />
 </p>
 <p><span class="figure-number">Figure 4: </span>Sim Net Module</p>
@@ -254,11 +277,11 @@
 </div>
 </div>
 
-<div id="outline-container-orgcc22bcf" class="outline-3">
-<h3 id="orgcc22bcf"><span class="section-number-3">1.2.</span> Sim Core Module</h3>
+<div id="outline-container-org03a2df0" class="outline-3">
+<h3 id="org03a2df0"><span class="section-number-3">1.2.</span> Sim Core Module</h3>
 <div class="outline-text-3" id="text-1-2">
 
-<div id="org4ccc2d9" class="figure">
+<div id="org88f501f" class="figure">
 <p><img src="pnets-sim-model.svg" alt="pnets-sim-model.svg" class="org-svg" />
 </p>
 <p><span class="figure-number">Figure 5: </span>Sim Core Module</p>
@@ -266,11 +289,11 @@
 </div>
 </div>
 
-<div id="outline-container-orgf905baf" class="outline-3">
-<h3 id="orgf905baf"><span class="section-number-3">1.3.</span> Guarded Extension Module</h3>
+<div id="outline-container-org7e5f0a2" class="outline-3">
+<h3 id="org7e5f0a2"><span class="section-number-3">1.3.</span> Guarded Extension Module</h3>
 <div class="outline-text-3" id="text-1-3">
 
-<div id="org6151cd7" class="figure">
+<div id="org539c0cb" class="figure">
 <p><img src="pnets-guarded-model.svg" alt="pnets-guarded-model.svg" class="org-svg" />
 </p>
 <p><span class="figure-number">Figure 6: </span>Guarded Extension Module</p>
@@ -278,11 +301,11 @@
 </div>
 </div>
 
-<div id="outline-container-orge51fa7f" class="outline-3">
-<h3 id="orge51fa7f"><span class="section-number-3">1.4.</span> Inhibited Extension Module</h3>
+<div id="outline-container-org30c6247" class="outline-3">
+<h3 id="org30c6247"><span class="section-number-3">1.4.</span> Inhibited Extension Module</h3>
 <div class="outline-text-3" id="text-1-4">
 
-<div id="org307ed51" class="figure">
+<div id="org45a279d" class="figure">
 <p><img src="pnets-inhibited-model.svg" alt="pnets-inhibited-model.svg" class="org-svg" />
 </p>
 <p><span class="figure-number">Figure 7: </span>Inhibited Extension Module</p>
@@ -290,11 +313,11 @@
 </div>
 </div>
 
-<div id="outline-container-org45fcfd8" class="outline-3">
-<h3 id="org45fcfd8"><span class="section-number-3">1.5.</span> Timed Extension Module</h3>
+<div id="outline-container-orgfe0f645" class="outline-3">
+<h3 id="orgfe0f645"><span class="section-number-3">1.5.</span> Timed Extension Module</h3>
 <div class="outline-text-3" id="text-1-5">
 
-<div id="orgae8fec6" class="figure">
+<div id="org69304c8" class="figure">
 <p><img src="pnets-timed-model.svg" alt="pnets-timed-model.svg" class="org-svg" />
 </p>
 <p><span class="figure-number">Figure 8: </span>Timed Extension Module</p>
@@ -302,11 +325,11 @@
 </div>
 </div>
 
-<div id="outline-container-org72d18b0" class="outline-3">
-<h3 id="org72d18b0"><span class="section-number-3">1.6.</span> Weighted Extension Module</h3>
+<div id="outline-container-org2299473" class="outline-3">
+<h3 id="org2299473"><span class="section-number-3">1.6.</span> Weighted Extension Module</h3>
 <div class="outline-text-3" id="text-1-6">
 
-<div id="orgcde6fb1" class="figure">
+<div id="org6a25e1e" class="figure">
 <p><img src="pnets-weighted-model.svg" alt="pnets-weighted-model.svg" class="org-svg" />
 </p>
 <p><span class="figure-number">Figure 9: </span>Weighted Extension Module</p>
@@ -315,21 +338,425 @@
 </div>
 </div>
 
-<div id="outline-container-orgc1a1b01" class="outline-2">
-<h2 id="orgc1a1b01"><span class="section-number-2">2.</span> Elementary Nets</h2>
+<div id="outline-container-orgbb9f90f" class="outline-2">
+<h2 id="orgbb9f90f"><span class="section-number-2">2.</span> Elementary Nets</h2>
 <div class="outline-text-2" id="text-2">
 
-<div id="org96bad61" class="figure">
+<div id="org424b58d" class="figure">
 <p><img src="pnets-elementary-net.svg" alt="pnets-elementary-net.svg" class="org-svg" />
 </p>
 <p><span class="figure-number">Figure 10: </span>Elementary Net Module</p>
 </div>
 </div>
 </div>
+
+<div id="outline-container-org8dc87ea" class="outline-2">
+<h2 id="org8dc87ea"><span class="section-number-2">3.</span> Appendix: PTNet Language</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+PTNet is a source form that allows for compact representation of nets in a readable form.
+</p>
+</div>
+
+<div id="outline-container-org380a616" class="outline-3">
+<h3 id="org380a616"><span class="section-number-3">3.1.</span> PTNet Grammar</h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+TBD
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org1af8b43" class="outline-2">
+<h2 id="org1af8b43"><span class="section-number-2">4.</span> Appendix: GraphViz</h2>
+<div class="outline-text-2" id="text-4">
+</div>
+<div id="outline-container-orgdf28229" class="outline-3">
+<h3 id="orgdf28229"><span class="section-number-3">4.1.</span> Net</h3>
+<div class="outline-text-3" id="text-4-1">
+<div class="org-src-container">
+<pre class="src src-dot" id="orgf8bd366">strict digraph {
+  id="{id}";
+  bgcolor="transparent";
+  compound=true;
+  fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
+  nodesep={seperation};
+  rankdir={rankdir};
+  ranksep{seperation};
+}
+</pre>
+</div>
+
+<table border="0" cellspacing="0" cellpadding="6" rules="none" frame="none">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Parameter</th>
+<th scope="col" class="org-left">Description</th>
+<th scope="col" class="org-left">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left"><code>id</code></td>
+<td class="org-left">use the prefix string &ldquo;net&rdquo; followed by a unique identifier (integer)</td>
+<td class="org-left">&ldquo;net0&rdquo;</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>seperation</code></td>
+<td class="org-left">determine node/rank spacing</td>
+<td class="org-left">0.75</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>rankdir</code></td>
+<td class="org-left">this is best as either &ldquo;TD&rdquo; for top-down, or &ldquo;LR&rdquo; for left-to-right</td>
+<td class="org-left">&ldquo;LR&rdquo;</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-org6289154" class="outline-3">
+<h3 id="org6289154"><span class="section-number-3">4.2.</span> Place</h3>
+<div class="outline-text-3" id="text-4-2">
+<div class="org-src-container">
+<pre class="src src-dot" id="org3b43b43">strict digraph {
+  {id} [
+    id="{id}";
+    shape="circle";
+    height={size};
+    width={size};
+    label="{marking}";
+    xlabel="{label}";
+  ];
+}
+</pre>
+</div>
+
+<table border="0" cellspacing="0" cellpadding="6" rules="none" frame="none">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Parameter</th>
+<th scope="col" class="org-left">Description</th>
+<th scope="col" class="org-left">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left"><code>id</code></td>
+<td class="org-left">use the prefix string &ldquo;p&rdquo; followed by a unique identifier (integer)</td>
+<td class="org-left">&ldquo;p0&rdquo;</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>size</code></td>
+<td class="org-left">in this case the diameter of the place circle</td>
+<td class="org-left">0.5</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>marking</code></td>
+<td class="org-left">a string representation of the marking of this place</td>
+<td class="org-left">&ldquo;&rdquo;</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>label</code></td>
+<td class="org-left">a user-defined label string, <i>or</i> the value of <code>id</code></td>
+<td class="org-left"><code>{id}</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-org53c31c9" class="outline-3">
+<h3 id="org53c31c9"><span class="section-number-3">4.3.</span> Transition</h3>
+<div class="outline-text-3" id="text-4-3">
+<div class="org-src-container">
+<pre class="src src-dot" id="org2fd6a52">strict digraph {
+  {id} [
+    id="{id}";
+    shape="rectangle";
+    style="filled";
+    color="{line_color}";
+    fillcolor="{fill_color}";
+    height={size};
+    width={=size*0.2};
+    label="";
+    xlabel="{label}";
+  ];
+}
+</pre>
+</div>
+
+<table border="0" cellspacing="0" cellpadding="6" rules="none" frame="none">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Parameter</th>
+<th scope="col" class="org-left">Description</th>
+<th scope="col" class="org-left">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left"><code>id</code></td>
+<td class="org-left">use the prefix string &ldquo;t&rdquo; followed by a unique identifier (integer)</td>
+<td class="org-left">&ldquo;t0&rdquo;</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>line_color</code></td>
+<td class="org-left">the color of the border of the transition</td>
+<td class="org-left">&ldquo;black&rdquo;</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>fill_color</code></td>
+<td class="org-left">the color of the inside of the transition</td>
+<td class="org-left">&ldquo;darkgrey&rdquo;</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>size</code></td>
+<td class="org-left">in this case the height of the transition, its width is 20% of the height</td>
+<td class="org-left">0.5</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>label</code></td>
+<td class="org-left">a user-defined label string, <i>or</i> the value of <code>id</code></td>
+<td class="org-left"><code>{id}</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-org0c2ecce" class="outline-3">
+<h3 id="org0c2ecce"><span class="section-number-3">4.4.</span> Arc</h3>
+<div class="outline-text-3" id="text-4-4">
+<div class="org-src-container">
+<pre class="src src-dot" id="org6d7a8ef">strict digraph {
+  {source} -&gt; {target} [
+    id="{source}_{target}";
+    arrowhead="{arc_head}";
+    arrowsize={scale}
+    label="{display_label}";
+  ];
+}
+</pre>
+</div>
+
+<table border="0" cellspacing="0" cellpadding="6" rules="none" frame="none">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Parameter</th>
+<th scope="col" class="org-left">Description</th>
+<th scope="col" class="org-left">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left"><code>source</code></td>
+<td class="org-left">the <code>id</code> of the arc source</td>
+<td class="org-left">N/A</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>target</code></td>
+<td class="org-left">the <code>id</code> of the arc target</td>
+<td class="org-left">N/A</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>arc_head</code></td>
+<td class="org-left">the arrow head shape, different for different arc <i>types</i></td>
+<td class="org-left">&ldquo;normal&rdquo;</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>scale</code></td>
+<td class="org-left">a scaling factor for the arrow shape</td>
+<td class="org-left">1.0</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>display_label</code></td>
+<td class="org-left">a display label for the arc</td>
+<td class="org-left">&ldquo;&rdquo;</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+For normal arcs the <code>arc_head</code> is &ldquo;normal&rdquo; which is a filled triangular head; for inhibitor arcs it is an open circle &ldquo;odot&rdquo;, for
+a reset arc it is two filled triangles &ldquo;normalnormal&rdquo; (like a fast-forward symbol) and a <code>scale</code> factor of 0.66.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org31021f5" class="outline-3">
+<h3 id="org31021f5"><span class="section-number-3">4.5.</span> Sub-net</h3>
+<div class="outline-text-3" id="text-4-5">
+<div class="org-src-container">
+<pre class="src src-dot" id="org899d21f">strict digraph {
+  subgraph cluster_{id} {
+    label="{id}";
+    margin={margin};
+  }
+}
+</pre>
+</div>
+
+<table border="0" cellspacing="0" cellpadding="6" rules="none" frame="none">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Parameter</th>
+<th scope="col" class="org-left">Description</th>
+<th scope="col" class="org-left">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left"><code>id</code></td>
+<td class="org-left">use the prefix string &ldquo;net&rdquo; followed by a unique identifier (integer)</td>
+<td class="org-left">&ldquo;net1&rdquo;</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>label</code></td>
+<td class="org-left">a user-defined label string, <i>or</i> the value of <code>id</code></td>
+<td class="org-left"><code>{id}</code></td>
+</tr>
+
+<tr>
+<td class="org-left"><code>margin</code></td>
+<td class="org-left">the margin in px between the cluster boundary and the included elements</td>
+<td class="org-left">24</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+
+<div id="outline-container-orgdce197b" class="outline-3">
+<h3 id="orgdce197b"><span class="section-number-3">4.6.</span> Colors</h3>
+<div class="outline-text-3" id="text-4-6">
+<table border="0" cellspacing="0" cellpadding="6" rules="none" frame="none">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Object</th>
+<th scope="col" class="org-left">State</th>
+<th scope="col" class="org-left">Border</th>
+<th scope="col" class="org-left">Fill</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Place</td>
+<td class="org-left">Static</td>
+<td class="org-left">&ldquo;black&rdquo;</td>
+<td class="org-left">N/A</td>
+</tr>
+
+<tr>
+<td class="org-left">Transition</td>
+<td class="org-left">Static</td>
+<td class="org-left">&ldquo;black&rdquo;</td>
+<td class="org-left">&ldquo;darkgrey&rdquo;</td>
+</tr>
+
+<tr>
+<td class="org-left">Transition</td>
+<td class="org-left">Dynamic, Enabled</td>
+<td class="org-left">&ldquo;darkgreen&rdquo;</td>
+<td class="org-left">&ldquo;lightgreen&rdquo;</td>
+</tr>
+
+<tr>
+<td class="org-left">Transition</td>
+<td class="org-left">Dynamic, Not Enabled</td>
+<td class="org-left">&ldquo;darkgrey&rdquo;</td>
+<td class="org-left">&ldquo;lightgrey&rdquo;</td>
+</tr>
+
+<tr>
+<td class="org-left">Arc</td>
+<td class="org-left">Static</td>
+<td class="org-left">&ldquo;black&rdquo;</td>
+<td class="org-left">N/A</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Simon Johnston</p>
-<p class="date">Created: 2023-12-12 Tue 13:59</p>
+<p class="date">Created: 2023-12-14 Thu 10:22</p>
 </div>
 </body>
 </html>

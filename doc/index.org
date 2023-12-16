@@ -32,7 +32,15 @@ strict digraph {
 #+RESULTS: src:pnet-first
 [[file:pnet-first.svg]]
 
-* PNet Core
+#+BEGIN_EXAMPLE
+net net0 {
+  place p1, p2
+  transition t1
+  arc p1 -> t1 -> p2   
+}
+#+END_EXAMPLE
+
+* PTNet Core
 
 #+NAME: src:pnets-model-core
 #+BEGIN_SRC plantuml :file pnets-model-core.svg
@@ -44,7 +52,7 @@ skinparam nodesep 100
 hide circle
 hide empty members
 
-package pnet  {
+package ptnet  {
     class NodeId <<datatype>>
 
     interface HasIdentity {
@@ -78,7 +86,7 @@ skinparam nodesep 100
 hide circle
 hide empty members
 
-package pnet  {
+package ptnet  {
     package net {}
     package sim {}
     sim ..> net: <<import>>
@@ -388,3 +396,270 @@ package elementary {
 #+CAPTION: Elementary Net Module
 #+RESULTS: src:pnets-elementary-net
 [[file:pnets-elementary-net.svg]]
+
+* Appendix: PTNet Language
+
+PTNet is a source form that allows for compact representation of nets in a readable form.
+
+** PTNet Grammar
+
+#+BEGIN_SRC ebnf
+file =
+    net | marking ;
+
+net =
+    "net" name
+    "{" property* defaults? tokens? node_or_arc* initial_marking? "}" ;
+
+property =
+    name "=" ( value | duration ) ;
+
+defaults =
+    "defaults" property_set ;
+
+property_set =
+     "{" property* "}" ;
+
+tokens =
+    "tokens" ( token_value "*" )? token_counter ;
+
+token_value =
+    unit_type
+    | token_set_boolean
+    | token_set_integer
+    | token_set_positive
+    | token_set_natural
+    | token_set_string
+    | tuple_type
+    | set_type ;
+
+token_counter =
+    token_set_boolean
+    | token_set_positive
+    | token_set_natural
+    | set_type ;
+
+unit_type = "()" ;
+
+token_set_boolean = "Boolean" ;
+
+token_set_integer = "Integer" ; 
+
+token_set_natural = "Natural" ; 
+
+token_set_positive = "Positive" ; 
+
+token_set_strings = "String" ; 
+
+tuple_type =
+    "⟨" tuple_member ( "," tuple_member )* "⟩"
+
+tuple_member =
+    name | new_token_set | new_token_tuple ;
+
+set_type =
+    "⟨" set_member ( "," set_member )* "⟩"
+
+set_member =
+    name | boolean | natural_positive | natural ;
+    
+node_or_arc =
+    place | transition | arc | subnet ;
+
+place =
+    "place" name_list property_set? ;
+
+transition =
+    "transition" name_list property_set? ;
+
+arc =
+    "arc" arc_expression property_set? ;
+
+arc_expression =
+    arc_name_or_expression_list arc_symbol arc_name_or_expression_list ;
+
+arc_name_or_expression_list =
+    arc_name_or_expression ( "," arc_name_or_expression )* ;
+
+arc_name_or_expression =
+    name | "(" arc_expression ")" ;
+
+arc_symbol = "->" | "-inhibitor>" | "-reset>" ;
+
+subnet =
+    "net" name "{" property* defaults? public_places? node_or_arc* "}" ;
+
+public_places =
+    "public" name_list ;
+
+initial_marking =
+    "initial" marking ;
+
+marking =
+    "marking" "{" property+ "}" ;
+
+name =
+    ( ASCII_LETTER | GREEK_LETTER ) ( ASCII_LETTER | GREEK_LETTER | "_")* ;
+
+name_list =
+    name ( "," name )* ;
+
+value =
+    boolean | number | quoted_string
+    | set_value | multiset_value | tuple_value ;
+
+bcfffvoolean =
+    "true" | "false" ;
+
+number =
+    natural | "inf" ;
+
+natural =
+    "0" | natural_positive+
+
+natural_positive =
+    [1-9] ASCII_DIGIT*
+
+quoted_string =
+    "\"" [^\"]* "\""  ;
+
+duration =
+    "!" | natural_positive | ( "[" | "(" ) natural_positive "," natural_positive ( "]" | ")" ) ;
+
+set_value =
+    "{" value ( "," value )* "}" ;
+
+multiset_value =
+    "[" value ( "," value )* "]" ;
+
+tuple_value =
+    "⟨" value ( "," value )* "⟩" ;
+#+END_SRC
+
+* Appendix: GraphViz
+
+** Net
+
+#+NAME: src:graphviz-ex-net
+#+BEGIN_SRC dot :file graphviz-ex-net.svg :exports code
+strict digraph {
+  id="{id}";
+  bgcolor="transparent";
+  compound=true;
+  fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
+  nodesep={seperation};
+  rankdir={rankdir};
+  ranksep{seperation};
+}
+#+END_SRC
+
+| Parameter  | Description                                                           | Default |
+|------------+-----------------------------------------------------------------------+---------|
+| ~id~         | use the prefix string "net" followed by a unique identifier (integer) | "net0"  |
+| ~seperation~ | determine node/rank spacing                                           | 0.75    |
+| ~rankdir~    | this is best as either "TD" for top-down, or "LR" for left-to-right   | "LR"    |
+
+** Place
+
+#+NAME: src:graphviz-ex-place
+#+BEGIN_SRC dot :file graphviz-ex-place.svg :exports code
+strict digraph {
+  {id} [
+    id="{id}";
+    shape="circle";
+    height={size};
+    width={size};
+    label="{marking}";
+    xlabel="{label}";
+  ];
+}
+#+END_SRC
+
+| Parameter | Description                                                         | Default |
+|-----------+---------------------------------------------------------------------+---------|
+| ~id~        | use the prefix string "p" followed by a unique identifier (integer) | "p0"    |
+| ~size~      | in this case the diameter of the place circle                       | 0.5     |
+| ~marking~   | a string representation of the marking of this place                | ""      |
+| ~label~     | a user-defined label string, /or/ the value of ~id~                     | ~{id}~    |
+
+** Transition
+
+#+NAME: src:graphviz-ex-transition
+#+BEGIN_SRC dot :file graphviz-ex-transition.svg :exports code
+strict digraph {
+  {id} [
+    id="{id}";
+    shape="rectangle";
+    style="filled";
+    color="{line_color}";
+    fillcolor="{fill_color}";
+    height={size};
+    width={=size*0.2};
+    label="";
+    xlabel="{label}";
+  ];
+}
+#+END_SRC
+
+| Parameter  | Description                                                               | Default    |
+|------------+---------------------------------------------------------------------------+------------|
+| ~id~         | use the prefix string "t" followed by a unique identifier (integer)       | "t0"       |
+| ~line_color~ | the color of the border of the transition                                 | "black"    |
+| ~fill_color~ | the color of the inside of the transition                                 | "darkgrey" |
+| ~size~       | in this case the height of the transition, its width is 20% of the height | 0.5        |
+| ~label~      | a user-defined label string, /or/ the value of ~id~                           | ~{id}~       |
+
+** Arc
+
+#+NAME: src:graphviz-ex-arc
+#+BEGIN_SRC dot :file graphviz-ex-arc.svg :exports code
+strict digraph {
+  {source} -> {target} [
+    id="{source}_{target}";
+    arrowhead="{arc_head}";
+    arrowsize={scale}
+    label="{display_label}";
+  ];
+}
+#+END_SRC
+
+| Parameter     | Description                                             | Default  |
+|---------------+---------------------------------------------------------+----------|
+| ~source~        | the ~id~ of the arc source                                | N/A      |
+| ~target~        | the ~id~ of the arc target                                | N/A      |
+| ~arc_head~      | the arrow head shape, different for different arc /types/ | "normal" |
+| ~scale~         | a scaling factor for the arrow shape                    | 1.0      |
+| ~display_label~ | a display label for the arc                             | ""       |
+
+For normal arcs the ~arc_head~ is "normal" which is a filled triangular head; for inhibitor arcs it is an open circle "odot", for
+a reset arc it is two filled triangles "normalnormal" (like a fast-forward symbol) and a ~scale~ factor of 0.66.
+
+** Sub-net
+
+#+NAME: src:graphviz-ex-subnet
+#+BEGIN_SRC dot :file graphviz-ex-subnet.svg :exports code
+strict digraph {
+  subgraph cluster_{id} {
+    label="{id}";
+    margin={margin};
+  }
+}
+#+END_SRC
+
+| Parameter | Description                                                             | Default |
+|-----------+-------------------------------------------------------------------------+---------|
+| ~id~        | use the prefix string "net" followed by a unique identifier (integer)   | "net1"  |
+| ~label~     | a user-defined label string, /or/ the value of ~id~                         | ~{id}~  |
+| ~margin~    | the margin in px between the cluster boundary and the included elements | 24      |
+
+
+
+** Colors
+
+| Object     | State                | Border      | Fill         |
+|------------+----------------------+-------------+--------------|
+| Place      | Static               | "black"     | N/A          |
+| Transition | Static               | "black"     | "darkgrey"   |
+| Transition | Dynamic, Enabled     | "darkgreen" | "lightgreen" |
+| Transition | Dynamic, Not Enabled | "darkgrey"  | "lightgrey"  |
+| Arc        | Static               | "black"     | N/A          |

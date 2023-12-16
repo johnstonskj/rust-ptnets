@@ -1,0 +1,3 @@
+net traffic_lights {
+  tokens {Red, Green, Blue} * Natural
+}
