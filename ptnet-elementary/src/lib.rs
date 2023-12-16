@@ -627,7 +627,7 @@ impl Display for Dot {
             if self.value {
                 "●"
             } else if f.alternate() {
-                    "○"
+                "○"
             } else {
                 ""
             }
@@ -748,7 +748,7 @@ impl Simulation for ElementarySimulation {
 
     fn steps(&mut self, steps: Duration) -> Result<(), Error> {
         if let (Some(tracer), Step::ZERO) = (&self.tracer, self.step) {
-                tracer.started(self);
+            tracer.started(self);
         }
         for _ in 0..*steps.as_ref() {
             // 1. Get a list of all enabled transitions
