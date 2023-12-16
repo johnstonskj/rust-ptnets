@@ -158,7 +158,7 @@ pub struct ElementaryNet {
     arcs: HashSet<SimpleArc>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct GraphvizNetFormatter;
 
 // ------------------------------------------------------------------------------------------------
@@ -180,6 +180,7 @@ pub struct SimpleMarking {
 // Public Types  Simulation
 // ------------------------------------------------------------------------------------------------
 
+#[allow(clippy::type_complexity)]
 pub struct ElementarySimulation {
     net: Rc<ElementaryNet>,
     marking: SimpleMarking,
@@ -472,12 +473,6 @@ impl ElementaryNet {
 
 // ------------------------------------------------------------------------------------------------
 
-impl Default for GraphvizNetFormatter {
-    fn default() -> Self {
-        Self {}
-    }
-}
-
 impl NetFormatter for GraphvizNetFormatter {
     type Place = SimplePlace;
     type Transition = SimpleTransition;
@@ -631,12 +626,10 @@ impl Display for Dot {
             "{}",
             if self.value {
                 "●"
-            } else {
-                if f.alternate() {
+            } else if f.alternate() {
                     "○"
-                } else {
-                    ""
-                }
+            } else {
+                ""
             }
         )
     }
@@ -754,11 +747,8 @@ impl Simulation for ElementarySimulation {
     }
 
     fn steps(&mut self, steps: Duration) -> Result<(), Error> {
-        match (&self.tracer, self.step) {
-            (Some(tracer), Step::ZERO) => {
+        if let (Some(tracer), Step::ZERO) = (&self.tracer, self.step) {
                 tracer.started(self);
-            }
-            _ => {}
         }
         for _ in 0..*steps.as_ref() {
             // 1. Get a list of all enabled transitions
@@ -863,10 +853,7 @@ impl ElementarySimulation {
         }
     }
 
-    fn fire(
-        &mut self,
-        transition: NodeId,
-    ) -> Result<(), Error> {
+    fn fire(&mut self, transition: NodeId) -> Result<(), Error> {
         // 1. Take tokens from inputs
         for place_id in self.net.inputs(&transition) {
             self.marking.reset(*place_id);

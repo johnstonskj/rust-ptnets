@@ -21,7 +21,7 @@ fn test_make_simple_net() {
     let mut f = NetMatrixFormatter::default();
     print_net(&net, &mut f).unwrap();
     println!("-----");
-    let mut f = GraphvizNetFormatter::default();
+    let mut f = GraphvizNetFormatter;
     print_net(&net, &mut f).unwrap();
     println!("-----");
 }
