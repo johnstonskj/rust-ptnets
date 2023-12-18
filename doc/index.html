@@ -3,196 +3,33 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2023-12-14 Thu 10:22 -->
+<!-- 2023-12-18 Mon 09:35 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Notes on Petri Nets</title>
 <meta name="author" content="Simon Johnston" />
 <meta name="generator" content="Org Mode" />
-<style>
-  #content { max-width: 60em; margin: auto; }
-  .title  { text-align: center;
-             margin-bottom: .2em; }
-  .subtitle { text-align: center;
-              font-size: medium;
-              font-weight: bold;
-              margin-top:0; }
-  .todo   { font-family: monospace; color: red; }
-  .done   { font-family: monospace; color: green; }
-  .priority { font-family: monospace; color: orange; }
-  .tag    { background-color: #eee; font-family: monospace;
-            padding: 2px; font-size: 80%; font-weight: normal; }
-  .timestamp { color: #bebebe; }
-  .timestamp-kwd { color: #5f9ea0; }
-  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
-  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
-  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
-  .underline { text-decoration: underline; }
-  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
-  p.verse { margin-left: 3%; }
-  pre {
-    border: 1px solid #e6e6e6;
-    border-radius: 3px;
-    background-color: #f2f2f2;
-    padding: 8pt;
-    font-family: monospace;
-    overflow: auto;
-    margin: 1.2em;
+<link rel="stylesheet" type="text/css" href="https://fniessen.github.io/org-html-themes/src/readtheorg_theme/css/htmlize.css"/>
+<link rel="stylesheet" type="text/css" href="https://fniessen.github.io/org-html-themes/src/readtheorg_theme/css/readtheorg.css"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/lib/js/jquery.stickytableheaders.min.js"></script>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/readtheorg_theme/js/readtheorg.js"></script>
+<link rel="stylesheet" type="text/css" href="ptnets.css"/>
+<script>
+MathJax = {
+  tex: {
+    ams: {
+      multlineWidth: '85%',
+      multlineIndent: '1em'
+    },
+    tags: 'ams'
   }
-  pre.src {
-    position: relative;
-    overflow: auto;
-  }
-  pre.src:before {
-    display: none;
-    position: absolute;
-    top: -8px;
-    right: 12px;
-    padding: 3px;
-    color: #555;
-    background-color: #f2f2f299;
-  }
-  pre.src:hover:before { display: inline; margin-top: 14px;}
-  /* Languages per Org manual */
-  pre.src-asymptote:before { content: 'Asymptote'; }
-  pre.src-awk:before { content: 'Awk'; }
-  pre.src-authinfo::before { content: 'Authinfo'; }
-  pre.src-C:before { content: 'C'; }
-  /* pre.src-C++ doesn't work in CSS */
-  pre.src-clojure:before { content: 'Clojure'; }
-  pre.src-css:before { content: 'CSS'; }
-  pre.src-D:before { content: 'D'; }
-  pre.src-ditaa:before { content: 'ditaa'; }
-  pre.src-dot:before { content: 'Graphviz'; }
-  pre.src-calc:before { content: 'Emacs Calc'; }
-  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
-  pre.src-fortran:before { content: 'Fortran'; }
-  pre.src-gnuplot:before { content: 'gnuplot'; }
-  pre.src-haskell:before { content: 'Haskell'; }
-  pre.src-hledger:before { content: 'hledger'; }
-  pre.src-java:before { content: 'Java'; }
-  pre.src-js:before { content: 'Javascript'; }
-  pre.src-latex:before { content: 'LaTeX'; }
-  pre.src-ledger:before { content: 'Ledger'; }
-  pre.src-lisp:before { content: 'Lisp'; }
-  pre.src-lilypond:before { content: 'Lilypond'; }
-  pre.src-lua:before { content: 'Lua'; }
-  pre.src-matlab:before { content: 'MATLAB'; }
-  pre.src-mscgen:before { content: 'Mscgen'; }
-  pre.src-ocaml:before { content: 'Objective Caml'; }
-  pre.src-octave:before { content: 'Octave'; }
-  pre.src-org:before { content: 'Org mode'; }
-  pre.src-oz:before { content: 'OZ'; }
-  pre.src-plantuml:before { content: 'Plantuml'; }
-  pre.src-processing:before { content: 'Processing.js'; }
-  pre.src-python:before { content: 'Python'; }
-  pre.src-R:before { content: 'R'; }
-  pre.src-ruby:before { content: 'Ruby'; }
-  pre.src-sass:before { content: 'Sass'; }
-  pre.src-scheme:before { content: 'Scheme'; }
-  pre.src-screen:before { content: 'Gnu Screen'; }
-  pre.src-sed:before { content: 'Sed'; }
-  pre.src-sh:before { content: 'shell'; }
-  pre.src-sql:before { content: 'SQL'; }
-  pre.src-sqlite:before { content: 'SQLite'; }
-  /* additional languages in org.el's org-babel-load-languages alist */
-  pre.src-forth:before { content: 'Forth'; }
-  pre.src-io:before { content: 'IO'; }
-  pre.src-J:before { content: 'J'; }
-  pre.src-makefile:before { content: 'Makefile'; }
-  pre.src-maxima:before { content: 'Maxima'; }
-  pre.src-perl:before { content: 'Perl'; }
-  pre.src-picolisp:before { content: 'Pico Lisp'; }
-  pre.src-scala:before { content: 'Scala'; }
-  pre.src-shell:before { content: 'Shell Script'; }
-  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
-  /* additional language identifiers per "defun org-babel-execute"
-       in ob-*.el */
-  pre.src-cpp:before  { content: 'C++'; }
-  pre.src-abc:before  { content: 'ABC'; }
-  pre.src-coq:before  { content: 'Coq'; }
-  pre.src-groovy:before  { content: 'Groovy'; }
-  /* additional language identifiers from org-babel-shell-names in
-     ob-shell.el: ob-shell is the only babel language using a lambda to put
-     the execution function name together. */
-  pre.src-bash:before  { content: 'bash'; }
-  pre.src-csh:before  { content: 'csh'; }
-  pre.src-ash:before  { content: 'ash'; }
-  pre.src-dash:before  { content: 'dash'; }
-  pre.src-ksh:before  { content: 'ksh'; }
-  pre.src-mksh:before  { content: 'mksh'; }
-  pre.src-posh:before  { content: 'posh'; }
-  /* Additional Emacs modes also supported by the LaTeX listings package */
-  pre.src-ada:before { content: 'Ada'; }
-  pre.src-asm:before { content: 'Assembler'; }
-  pre.src-caml:before { content: 'Caml'; }
-  pre.src-delphi:before { content: 'Delphi'; }
-  pre.src-html:before { content: 'HTML'; }
-  pre.src-idl:before { content: 'IDL'; }
-  pre.src-mercury:before { content: 'Mercury'; }
-  pre.src-metapost:before { content: 'MetaPost'; }
-  pre.src-modula-2:before { content: 'Modula-2'; }
-  pre.src-pascal:before { content: 'Pascal'; }
-  pre.src-ps:before { content: 'PostScript'; }
-  pre.src-prolog:before { content: 'Prolog'; }
-  pre.src-simula:before { content: 'Simula'; }
-  pre.src-tcl:before { content: 'tcl'; }
-  pre.src-tex:before { content: 'TeX'; }
-  pre.src-plain-tex:before { content: 'Plain TeX'; }
-  pre.src-verilog:before { content: 'Verilog'; }
-  pre.src-vhdl:before { content: 'VHDL'; }
-  pre.src-xml:before { content: 'XML'; }
-  pre.src-nxml:before { content: 'XML'; }
-  /* add a generic configuration mode; LaTeX export needs an additional
-     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
-  pre.src-conf:before { content: 'Configuration File'; }
-
-  table { border-collapse:collapse; }
-  caption.t-above { caption-side: top; }
-  caption.t-bottom { caption-side: bottom; }
-  td, th { vertical-align:top;  }
-  th.org-right  { text-align: center;  }
-  th.org-left   { text-align: center;   }
-  th.org-center { text-align: center; }
-  td.org-right  { text-align: right;  }
-  td.org-left   { text-align: left;   }
-  td.org-center { text-align: center; }
-  dt { font-weight: bold; }
-  .footpara { display: inline; }
-  .footdef  { margin-bottom: 1em; }
-  .figure { padding: 1em; }
-  .figure p { text-align: center; }
-  .equation-container {
-    display: table;
-    text-align: center;
-    width: 100%;
-  }
-  .equation {
-    vertical-align: middle;
-  }
-  .equation-label {
-    display: table-cell;
-    text-align: right;
-    vertical-align: middle;
-  }
-  .inlinetask {
-    padding: 10px;
-    border: 2px solid gray;
-    margin: 10px;
-    background: #ffffcc;
-  }
-  #org-div-home-and-up
-   { text-align: right; font-size: 70%; white-space: nowrap; }
-  textarea { overflow-x: auto; }
-  .linenr { font-size: smaller }
-  .code-highlighted { background-color: #ffff00; }
-  .org-info-js_info-navigation { border-style: none; }
-  #org-info-js_console-label
-    { font-size: 10px; font-weight: bold; white-space: nowrap; }
-  .org-info-js_search-highlight
-    { background-color: #ffff00; color: #000000; font-weight: bold; }
-  .org-svg { }
-</style>
+};
+</script>
+<script id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
 </head>
 <body>
 <div id="content" class="content">
@@ -201,43 +38,149 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org93dd274">1. PTNet Core</a>
+<li><a href="#orgd09c5dc">1. PTNet Modules</a>
 <ul>
-<li><a href="#org4f7f21e">1.1. Net Core Module</a></li>
-<li><a href="#org03a2df0">1.2. Sim Core Module</a></li>
-<li><a href="#org7e5f0a2">1.3. Guarded Extension Module</a></li>
-<li><a href="#org30c6247">1.4. Inhibited Extension Module</a></li>
-<li><a href="#orgfe0f645">1.5. Timed Extension Module</a></li>
-<li><a href="#org2299473">1.6. Weighted Extension Module</a></li>
+<li><a href="#org928e88b">1.1. Common Types</a></li>
+<li><a href="#org40a90b0">1.2. Net Core Module</a></li>
+<li><a href="#org301696b">1.3. Sim Core Module</a></li>
+<li><a href="#org7dd16b3">1.4. Guarded Extension Module</a></li>
+<li><a href="#org1fa650a">1.5. Inhibited Extension Module</a></li>
+<li><a href="#org14b5223">1.6. Read-Only Arc Extension Module</a></li>
+<li><a href="#org0721305">1.7. Timed Extension Module</a></li>
+<li><a href="#org6e12edf">1.8. Weighted Extension Module</a></li>
 </ul>
 </li>
-<li><a href="#orgbb9f90f">2. Elementary Nets</a></li>
-<li><a href="#org8dc87ea">3. Appendix: PTNet Language</a>
+<li><a href="#org10e1b40">2. Elementary Nets</a></li>
+<li><a href="#org9e07049">3. Appendix: PTNet Language</a>
 <ul>
-<li><a href="#org380a616">3.1. PTNet Grammar</a></li>
+<li><a href="#org5003896">3.1. PTNet Grammar</a></li>
 </ul>
 </li>
-<li><a href="#org1af8b43">4. Appendix: GraphViz</a>
+<li><a href="#org5e48a1b">4. Appendix: GraphViz</a>
 <ul>
-<li><a href="#orgdf28229">4.1. Net</a></li>
-<li><a href="#org6289154">4.2. Place</a></li>
-<li><a href="#org53c31c9">4.3. Transition</a></li>
-<li><a href="#org0c2ecce">4.4. Arc</a></li>
-<li><a href="#org31021f5">4.5. Sub-net</a></li>
-<li><a href="#orgdce197b">4.6. Colors</a></li>
+<li><a href="#org0ff6175">4.1. Net</a></li>
+<li><a href="#org4ba8833">4.2. Place</a></li>
+<li><a href="#org23ba4c9">4.3. Transition</a></li>
+<li><a href="#orgb0a1b02">4.4. Arc</a></li>
+<li><a href="#org89044fe">4.5. Sub-net</a></li>
+<li><a href="#orgf2117dd">4.6. Colors</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-
-<div id="org1754d21" class="figure">
-<p><img src="pnet-first.svg" alt="pnet-first.svg" class="org-svg" />
+<p>
+A Petri net is a graphical and mathematical modeling tool. The concept of Petri nets has its origin in Carl Adam Petri&rsquo;s
+dissertation &ldquo;<b>Kommunikation mit Automaten</b>&rdquo;, submitted in 1962 to the faculty of Mathematics and Physics at the
+Technische Universität Darmstadt, Germany.
 </p>
-<p><span class="figure-number">Figure 1: </span>Basic Petri Net Components</p>
+
+<p>
+Petri nets are a well-used tool for describing and studying systems that are characterized as being concurrent,
+asynchronous, distributed, parallel, nondeterministic, and/or stochastic. As a graphical tool, Petri nets can be used as
+a visual-communication aid similar to flow charts, block diagrams, and networks. In addition, tokens are used in these
+nets to simulate the dynamic and concurrent activities of systems. As a mathematical tool, it is possible to set up
+state equations, algebraic equations, and other mathematical models governing the behavior of systems.
+</p>
+
+<div id="outline-container-orgd09c5dc" class="outline-2">
+<h2 id="orgd09c5dc"><span class="section-number-2">1.</span> PTNet Modules</h2>
+<div class="outline-text-2" id="text-1">
+
+<div id="org8b2cfeb" class="figure">
+<p><img src="ptnet-model-packages.svg" alt="ptnet-model-packages.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 1: </span>Core Modules</p>
+</div>
 </div>
 
-<pre class="example" id="orgf007429">
+<div id="outline-container-org928e88b" class="outline-3">
+<h3 id="org928e88b"><span class="section-number-3">1.1.</span> Common Types</h3>
+<div class="outline-text-3" id="text-1-1">
+
+<div id="orgda8fc07" class="figure">
+<p><img src="ptnet-model-core.svg" alt="ptnet-model-core.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 2: </span>Common Types and Interfaces</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org40a90b0" class="outline-3">
+<h3 id="org40a90b0"><span class="section-number-3">1.2.</span> Net Core Module</h3>
+<div class="outline-text-3" id="text-1-2">
+<p>
+A Net \(N\) consists of a tuple of <b>places</b> (the set \(P\)), <b>transitions</b> (the set \(T\)), and <b>arcs</b> (the set
+\(A\)) that connect them. Note that arcs are historically known as <b>flow relations</b> and the set is named \(F\).
+</p>
+
+<p>
+\[\tag{Net} N = \left\langle P,T,A \right\rangle\]
+</p>
+
+<p>
+The sets of places \(P\) and transitions \(T\) are disjoint.
+</p>
+
+<p>
+\[ P \cap T = \emptyset\]
+</p>
+
+<p>
+Arcs are a directed connection between a place/transition pair. We will use the notation \(a_{src}\)
+for the source end and \(a_{tgt}\) for the target end of an arc \(a\).
+</p>
+
+<p>
+\[\tag{Net Arc} A = \left(P \times T \right) \cup \left(T \times P \right)\]
+</p>
+
+<p>
+<b>Input arcs</b> connect a source place to a target transition.
+</p>
+
+<p>
+\[\tag{Input Arc} a_{in} = \left\{ a \in A \mid a_{tgt} \in T \right\}\]
+\[ a_{in}(t) = \left \{ a \in A \mid a_{tgt} = t \right \}\]
+</p>
+
+<p>
+The set of <b>input places</b> for a transition \(t\) is called its <b>preset</b> or \({}^{\bullet}t\).
+</p>
+
+<p>
+\[\tag{Preset} {}^{\bullet}t = \left\{ p \in P \mid A(p,t) \right\}\]
+</p>
+
+<p>
+<b>Output arcs</b> connect a source transition to a target place.
+</p>
+
+<p>
+\[\tag{Output Arc} a_{out} = \left\{ a \in A \mid a{_src} \in T \right\}\]
+\[ a_{out}(t) = \left\{ a \in A \mid a{_src} = t \right\}\]
+</p>
+
+<p>
+The set of <b>output places</b> for a transition \(t\) is called its <b>postset</b> or \(t^{\bullet}\).
+</p>
+
+<p>
+\[\tag{Postset} t^{\bullet} = \left\{ p \in P \mid A(t,p) \right\}\]
+</p>
+
+
+<div id="org64aa083" class="figure">
+<p><img src="ptnet-model-net.svg" alt="ptnet-model-net.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 3: </span>Core Net Module</p>
+</div>
+
+<p>
+<b>Textual Notation</b>
+</p>
+
+<pre class="example" id="orgd1fff13">
 net net0 {
   place p1, p2
   transition t1
@@ -245,139 +188,466 @@ net net0 {
 }
 </pre>
 
-<div id="outline-container-org93dd274" class="outline-2">
-<h2 id="org93dd274"><span class="section-number-2">1.</span> PTNet Core</h2>
-<div class="outline-text-2" id="text-1">
-
-<div id="org6ebfa63" class="figure">
-<p><img src="pnets-model-core.svg" alt="pnets-model-core.svg" class="org-svg" />
+<p>
+<b>Graphical Notation</b>
 </p>
-<p><span class="figure-number">Figure 2: </span>Core Interfaces</p>
-</div>
 
 
-
-
-<div id="org304e6b4" class="figure">
-<p><img src="pnets-model-packages.svg" alt="pnets-model-packages.svg" class="org-svg" />
+<div id="orgaff7403" class="figure">
+<p><img src="ptnet-graph-core.svg" alt="ptnet-graph-core.svg" class="org-svg" />
 </p>
-<p><span class="figure-number">Figure 3: </span>Core Modules</p>
+<p><span class="figure-number">Figure 4: </span>Core Net</p>
+</div>
 </div>
 </div>
 
-<div id="outline-container-org4f7f21e" class="outline-3">
-<h3 id="org4f7f21e"><span class="section-number-3">1.1.</span> Net Core Module</h3>
-<div class="outline-text-3" id="text-1-1">
-
-<div id="org483cf3c" class="figure">
-<p><img src="pnets-net-model.svg" alt="pnets-net-model.svg" class="org-svg" />
+<div id="outline-container-org301696b" class="outline-3">
+<h3 id="org301696b"><span class="section-number-3">1.3.</span> Sim Core Module</h3>
+<div class="outline-text-3" id="text-1-3">
+<p>
+Places can contain <b>tokens</b>; the current state of the modeled system (termed the <b>marking function</b> \(M\)) is given by the
+number of tokens in each place.
 </p>
-<p><span class="figure-number">Figure 4: </span>Sim Net Module</p>
-</div>
-</div>
-</div>
 
-<div id="outline-container-org03a2df0" class="outline-3">
-<h3 id="org03a2df0"><span class="section-number-3">1.2.</span> Sim Core Module</h3>
-<div class="outline-text-3" id="text-1-2">
+<p>
+\[\tag{Marking Function} M: P \mapsto \mathbb{N}\]
+</p>
 
-<div id="org88f501f" class="figure">
-<p><img src="pnets-sim-model.svg" alt="pnets-sim-model.svg" class="org-svg" />
+<p>
+The initial marking of a net is noted as \(M_{im}\) or more commonly \(M_0\). A <b>marked net</b> extends the Net tuple
+with a particular marking \(M\).
+</p>
+
+<p>
+\[\tag{Marked Net} N = \left\langle P,T,A,M \right\rangle\]
+</p>
+
+<p>
+Transitions are active components. They model activities which can occur (the transition <b>fires</b>), thus changing the
+state of the system (the marking of the Petri net). Transitions are only allowed to fire if they are <b>enabled</b>, which
+means that all the preconditions for the activity must be fulfilled, i.e. there are enough tokens available in the input
+places. For this check we use the undefined function \(min\) which can only be defined as we define the type of tokens
+later.
+</p>
+
+<p>
+\[\tag{Enabled Function} enabled\left(t \in T \right) = \forall p \in {}^{\bullet}t: min\left(A\left(p,t\right)\right)\]
+</p>
+
+<p>
+A net \(N\) is therefore enabled <b>iff</b> any transition in \(N\) is enabled.
+</p>
+
+<p>
+\[enabled\left(N\right) \iff \exists t \in T: enabled\left(t\right)\]
+</p>
+
+<p>
+When the transition fires, it removes tokens from its input places and adds some at all of its output places. The number
+of tokens removed or added depends on the cardinality of each arc.
+</p>
+
+<p>
+The firing of transitions in the marking \(M_n\) results in the new marking \(M_{n+1}\). The interactive firing of
+transitions in subsequent markings is called the <b><b>token game</b></b>.
+</p>
+
+
+<div id="org3e1c1ba" class="figure">
+<p><img src="ptnet-model-sim.svg" alt="ptnet-model-sim.svg" class="org-svg" />
 </p>
 <p><span class="figure-number">Figure 5: </span>Sim Core Module</p>
 </div>
-</div>
-</div>
 
-<div id="outline-container-org7e5f0a2" class="outline-3">
-<h3 id="org7e5f0a2"><span class="section-number-3">1.3.</span> Guarded Extension Module</h3>
-<div class="outline-text-3" id="text-1-3">
-
-<div id="org539c0cb" class="figure">
-<p><img src="pnets-guarded-model.svg" alt="pnets-guarded-model.svg" class="org-svg" />
+<p>
+<b>Textual Notation</b>
 </p>
-<p><span class="figure-number">Figure 6: </span>Guarded Extension Module</p>
+
+<pre class="example" id="org829ac50">
+net net0 {
+  place p1, p2, p3
+  transition t1, t2
+  arc p1 -&gt; t1 -&gt; p2 -&gt; t2 -&gt; p3
+
+  initial marking {
+    p1 = true
+  } 
+}
+</pre>
+
+<p>
+<b>Graphical Notation</b>
+</p>
+
+
+<div id="orgfca5996" class="figure">
+<p><img src="ptnet-graph-sim.svg" alt="ptnet-graph-sim.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 6: </span>Basic Petri Net Components</p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org30c6247" class="outline-3">
-<h3 id="org30c6247"><span class="section-number-3">1.4.</span> Inhibited Extension Module</h3>
+<div id="outline-container-org7dd16b3" class="outline-3">
+<h3 id="org7dd16b3"><span class="section-number-3">1.4.</span> Guarded Extension Module</h3>
 <div class="outline-text-3" id="text-1-4">
 
-<div id="org45a279d" class="figure">
-<p><img src="pnets-inhibited-model.svg" alt="pnets-inhibited-model.svg" class="org-svg" />
+<div id="orgb5250e0" class="figure">
+<p><img src="ptnet-model-guarded.svg" alt="ptnet-model-guarded.svg" class="org-svg" />
 </p>
-<p><span class="figure-number">Figure 7: </span>Inhibited Extension Module</p>
+<p><span class="figure-number">Figure 7: </span>Guarded Transitions Module</p>
 </div>
+
+<p>
+<b>Textual Notation</b>
+</p>
+
+<p>
+TBD
+</p>
+
+<p>
+<b>Graphical Notation</b>
+</p>
+
+<p>
+TBD
+</p>
 </div>
 </div>
 
-<div id="outline-container-orgfe0f645" class="outline-3">
-<h3 id="orgfe0f645"><span class="section-number-3">1.5.</span> Timed Extension Module</h3>
+<div id="outline-container-org1fa650a" class="outline-3">
+<h3 id="org1fa650a"><span class="section-number-3">1.5.</span> Inhibited Extension Module</h3>
 <div class="outline-text-3" id="text-1-5">
 
-<div id="org69304c8" class="figure">
-<p><img src="pnets-timed-model.svg" alt="pnets-timed-model.svg" class="org-svg" />
+<div id="org8d0f00a" class="figure">
+<p><img src="ptnet-model-inhibited.svg" alt="ptnet-model-inhibited.svg" class="org-svg" />
 </p>
-<p><span class="figure-number">Figure 8: </span>Timed Extension Module</p>
+<p><span class="figure-number">Figure 8: </span>Inhibited and Reset Arcs Module</p>
+</div>
+
+<p>
+<b>Textual Notation</b>
+</p>
+
+<pre class="example" id="org2746722">
+net net0 {
+  place p1, p2
+  transition t1
+  arc p1 -inhibitor&gt; t1
+  arc t1 -reset&gt; p2   
+}
+</pre>
+
+<p>
+<b>Graphical Notation</b>
+</p>
+
+
+<div id="org7bc6a05" class="figure">
+<p><img src="ptnet-graph-inhibited.svg" alt="ptnet-graph-inhibited.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 9: </span>Inhibited and Reset Arcs</p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org2299473" class="outline-3">
-<h3 id="org2299473"><span class="section-number-3">1.6.</span> Weighted Extension Module</h3>
+<div id="outline-container-org14b5223" class="outline-3">
+<h3 id="org14b5223"><span class="section-number-3">1.6.</span> Read-Only Arc Extension Module</h3>
 <div class="outline-text-3" id="text-1-6">
 
-<div id="org6a25e1e" class="figure">
-<p><img src="pnets-weighted-model.svg" alt="pnets-weighted-model.svg" class="org-svg" />
+<div id="org7d0a5fc" class="figure">
+<p><img src="ptnet-model-readonly.svg" alt="ptnet-model-readonly.svg" class="org-svg" />
 </p>
-<p><span class="figure-number">Figure 9: </span>Weighted Extension Module</p>
+<p><span class="figure-number">Figure 10: </span>Read-Only Arcs Extension Module</p>
+</div>
+
+<p>
+<b>Textual Notation</b>
+</p>
+
+<pre class="example" id="org8699454">
+net net0 {
+  place p1, p2
+  transition t1
+  arc p1 -read- t1
+  arc t1 -&gt; p2   
+}
+</pre>
+
+<p>
+<b>Graphical Notation</b>
+</p>
+
+
+<div id="orgf20aa41" class="figure">
+<p><img src="ptnet-graph-readonly.svg" alt="ptnet-graph-readonly.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 11: </span>Read-only Arcs Extension</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org0721305" class="outline-3">
+<h3 id="org0721305"><span class="section-number-3">1.7.</span> Timed Extension Module</h3>
+<div class="outline-text-3" id="text-1-7">
+
+<div id="orgb009962" class="figure">
+<p><img src="ptnet-model-timed.svg" alt="ptnet-model-timed.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 12: </span>Timed Transitions Extension Module</p>
+</div>
+
+<p>
+<b>Textual Notation</b>
+</p>
+
+<p>
+TBD
+</p>
+
+<p>
+<b>Graphical Notation</b>
+</p>
+
+<p>
+TBD
+</p>
+</div>
+</div>
+
+<div id="outline-container-org6e12edf" class="outline-3">
+<h3 id="org6e12edf"><span class="section-number-3">1.8.</span> Weighted Extension Module</h3>
+<div class="outline-text-3" id="text-1-8">
+
+<div id="orgefd654e" class="figure">
+<p><img src="ptnet-model-weighted.svg" alt="ptnet-model-weighted.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 13: </span>Weighted Arcs Extension Module</p>
+</div>
+
+<p>
+<b>Textual Notation</b>
+</p>
+
+<pre class="example" id="org904bdc7">
+net net0 {
+  place p1 {
+    capacity = 2
+  }
+  place p2 {
+    capacity = inf
+  }
+  
+  transition t1
+  
+  arc p1 -&gt; t1 {
+    weight = 2
+  }
+  arc t1 -&gt; p2 {
+    weight = 1
+  }
+}
+</pre>
+
+<p>
+<b>Graphical Notation</b>
+</p>
+
+
+<div id="org92393fb" class="figure">
+<p><img src="ptnet-graph-weighted.svg" alt="ptnet-graph-weighted.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 14: </span>Weighted Arcs Extension</p>
 </div>
 </div>
 </div>
 </div>
 
-<div id="outline-container-orgbb9f90f" class="outline-2">
-<h2 id="orgbb9f90f"><span class="section-number-2">2.</span> Elementary Nets</h2>
+<div id="outline-container-org10e1b40" class="outline-2">
+<h2 id="org10e1b40"><span class="section-number-2">2.</span> Elementary Nets</h2>
 <div class="outline-text-2" id="text-2">
-
-<div id="org424b58d" class="figure">
-<p><img src="pnets-elementary-net.svg" alt="pnets-elementary-net.svg" class="org-svg" />
+<p>
+An Elementary net is a kind of place/transition net with the following characteristics.
 </p>
-<p><span class="figure-number">Figure 10: </span>Elementary Net Module</p>
+
+<ul class="org-ul">
+<li>The token type is the boolean type \\(\mathbb{B}\\).</li>
+<li>Arcs do not have weights, or are modeled with fixed weights of 1.</li>
+<li>Places do not have capacity constraints, or are modeled with infinite \\(\infty\\) capacity.</li>
+<li>Transitions do not have duration values, or are modeled with a fixed duration of 0.</li>
+<li>Transitions do not have guard expressions, or are modeled with a fixed guard returning true \\(\top\\).</li>
+<li>No inhibitor, reset, or read-only arcs are allowed.</li>
+</ul>
+
+
+<div id="orgb183d6e" class="figure">
+<p><img src="ptnet-model-elementary-net.svg" alt="ptnet-model-elementary-net.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 15: </span>Elementary Net Module</p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org8dc87ea" class="outline-2">
-<h2 id="org8dc87ea"><span class="section-number-2">3.</span> Appendix: PTNet Language</h2>
+<div id="outline-container-org9e07049" class="outline-2">
+<h2 id="org9e07049"><span class="section-number-2">3.</span> Appendix: PTNet Language</h2>
 <div class="outline-text-2" id="text-3">
 <p>
 PTNet is a source form that allows for compact representation of nets in a readable form.
 </p>
 </div>
 
-<div id="outline-container-org380a616" class="outline-3">
-<h3 id="org380a616"><span class="section-number-3">3.1.</span> PTNet Grammar</h3>
+<div id="outline-container-org5003896" class="outline-3">
+<h3 id="org5003896"><span class="section-number-3">3.1.</span> PTNet Grammar</h3>
 <div class="outline-text-3" id="text-3-1">
-<p>
-TBD
-</p>
+<div class="org-src-container">
+<pre class="src src-ebnf"><span style="color: #6c71c4;">file</span> =
+    net | marking <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">net</span> =
+    <span style="color: #2aa198;">"net"</span> name
+    <span style="color: #2aa198;">"{"</span> property* defaults? tokens? node_or_arc* initial_marking? <span style="color: #2aa198;">"}"</span> <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">property</span> =
+    name <span style="color: #2aa198;">"="</span> <span style="color: #657b83;">(</span> value | duration <span style="color: #657b83;">)</span> <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">defaults</span> =
+    <span style="color: #2aa198;">"defaults"</span> property_set <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">property_set</span> =
+     <span style="color: #2aa198;">"{"</span> property* <span style="color: #2aa198;">"}"</span> <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">tokens</span> =
+    <span style="color: #2aa198;">"tokens"</span> <span style="color: #657b83;">(</span> token_value <span style="color: #2aa198;">"*"</span> <span style="color: #657b83;">)</span>? token_counter <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">token_value</span> =
+    unit_type
+    | token_set_boolean
+    | token_set_integer
+    | token_set_positive
+    | token_set_natural
+    | token_set_string
+    | tuple_type
+    | set_type <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">token_counter</span> =
+    token_set_boolean
+    | token_set_positive
+    | token_set_natural
+    | set_type <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">unit_type</span> = <span style="color: #2aa198;">"()"</span> <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">token_set_boolean</span> = <span style="color: #2aa198;">"Boolean"</span> <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">token_set_integer</span> = <span style="color: #2aa198;">"Integer"</span> <span style="color: #93a1a1; font-style: italic;">; </span>
+
+<span style="color: #6c71c4;">token_set_natural</span> = <span style="color: #2aa198;">"Natural"</span> <span style="color: #93a1a1; font-style: italic;">; </span>
+
+<span style="color: #6c71c4;">token_set_positive</span> = <span style="color: #2aa198;">"Positive"</span> <span style="color: #93a1a1; font-style: italic;">; </span>
+
+<span style="color: #6c71c4;">token_set_strings</span> = <span style="color: #2aa198;">"String"</span> <span style="color: #93a1a1; font-style: italic;">; </span>
+
+<span style="color: #6c71c4;">tuple_type</span> =
+    <span style="color: #2aa198;">"&#10216;"</span> tuple_member <span style="color: #657b83;">(</span> <span style="color: #2aa198;">","</span> tuple_member <span style="color: #657b83;">)</span>* <span style="color: #2aa198;">"&#10217;"</span>
+
+<span style="color: #6c71c4;">tuple_member</span> =
+    name | new_token_set | new_token_tuple <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">set_type</span> =
+    <span style="color: #2aa198;">"&#10216;"</span> set_member <span style="color: #657b83;">(</span> <span style="color: #2aa198;">","</span> set_member <span style="color: #657b83;">)</span>* <span style="color: #2aa198;">"&#10217;"</span>
+
+<span style="color: #6c71c4;">set_member</span> =
+    name | boolean | natural_positive | natural <span style="color: #93a1a1; font-style: italic;">;</span>
+    
+<span style="color: #6c71c4;">node_or_arc</span> =
+    place | transition | arc | subnet <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">place</span> =
+    <span style="color: #2aa198;">"place"</span> name_list property_set? <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">transition</span> =
+    <span style="color: #2aa198;">"transition"</span> name_list property_set? <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">arc</span> =
+    <span style="color: #2aa198;">"arc"</span> arc_expression property_set? <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">arc_expression</span> =
+    arc_name_or_expression_list arc_symbol arc_name_or_expression_list <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">arc_name_or_expression_list</span> =
+    arc_name_or_expression <span style="color: #657b83;">(</span> <span style="color: #2aa198;">","</span> arc_name_or_expression <span style="color: #657b83;">)</span>* <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">arc_name_or_expression</span> =
+    name | <span style="color: #2aa198;">"("</span> arc_expression <span style="color: #2aa198;">")"</span> <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">arc_symbol</span> = <span style="color: #2aa198;">"-&gt;"</span> | <span style="color: #2aa198;">"-inhibitor&gt;"</span> | <span style="color: #2aa198;">"-reset&gt;"</span> | <span style="color: #2aa198;">"-read-"</span> <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">subnet</span> =
+    <span style="color: #2aa198;">"net"</span> name <span style="color: #2aa198;">"{"</span> property* defaults? public_places? node_or_arc* <span style="color: #2aa198;">"}"</span> <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">public_places</span> =
+    <span style="color: #2aa198;">"public"</span> name_list <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">initial_marking</span> =
+    <span style="color: #2aa198;">"initial"</span> marking <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">marking</span> =
+    <span style="color: #2aa198;">"marking"</span> <span style="color: #2aa198;">"{"</span> property+ <span style="color: #2aa198;">"}"</span> <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">name</span> =
+    <span style="color: #657b83;">(</span> ASCII_LETTER | GREEK_LETTER <span style="color: #657b83;">)</span> <span style="color: #657b83;">(</span> ASCII_LETTER | GREEK_LETTER | <span style="color: #2aa198;">"_"</span><span style="color: #657b83;">)</span>* <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">name_list</span> =
+    name <span style="color: #657b83;">(</span> <span style="color: #2aa198;">","</span> name <span style="color: #657b83;">)</span>* <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">value</span> =
+    boolean | number | quoted_string
+    | set_value | multiset_value | tuple_value <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">bcfffvoolean</span> =
+    <span style="color: #2aa198;">"true"</span> | <span style="color: #2aa198;">"false"</span> <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">number</span> =
+    natural | <span style="color: #2aa198;">"inf"</span> <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">natural</span> =
+    <span style="color: #2aa198;">"0"</span> | natural_positive+
+
+<span style="color: #6c71c4;">natural_positive</span> =
+    <span style="color: #657b83;">[</span>1-9<span style="color: #657b83;">]</span> ASCII_DIGIT*
+
+<span style="color: #6c71c4;">quoted_string</span> =
+    <span style="color: #2aa198;">"\""</span> <span style="color: #657b83;">[</span>^\"<span style="color: #657b83;">]</span>* <span style="color: #2aa198;">"\""</span>  <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">duration</span> =
+    <span style="color: #2aa198;">"!"</span> | natural_positive | <span style="color: #657b83;">(</span> <span style="color: #2aa198;">"["</span> | <span style="color: #2aa198;">"("</span> <span style="color: #657b83;">)</span> natural_positive <span style="color: #2aa198;">","</span> natural_positive <span style="color: #657b83;">(</span> <span style="color: #2aa198;">"]"</span> | <span style="color: #2aa198;">")"</span> <span style="color: #657b83;">)</span> <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">set_value</span> =
+    <span style="color: #2aa198;">"{"</span> value <span style="color: #657b83;">(</span> <span style="color: #2aa198;">","</span> value <span style="color: #657b83;">)</span>* <span style="color: #2aa198;">"}"</span> <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">multiset_value</span> =
+    <span style="color: #2aa198;">"["</span> value <span style="color: #657b83;">(</span> <span style="color: #2aa198;">","</span> value <span style="color: #657b83;">)</span>* <span style="color: #2aa198;">"]"</span> <span style="color: #93a1a1; font-style: italic;">;</span>
+
+<span style="color: #6c71c4;">tuple_value</span> =
+    <span style="color: #2aa198;">"&#10216;"</span> value <span style="color: #657b83;">(</span> <span style="color: #2aa198;">","</span> value <span style="color: #657b83;">)</span>* <span style="color: #2aa198;">"&#10217;"</span> <span style="color: #93a1a1; font-style: italic;">;</span>
+</pre>
+</div>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org1af8b43" class="outline-2">
-<h2 id="org1af8b43"><span class="section-number-2">4.</span> Appendix: GraphViz</h2>
+<div id="outline-container-org5e48a1b" class="outline-2">
+<h2 id="org5e48a1b"><span class="section-number-2">4.</span> Appendix: GraphViz</h2>
 <div class="outline-text-2" id="text-4">
 </div>
-<div id="outline-container-orgdf28229" class="outline-3">
-<h3 id="orgdf28229"><span class="section-number-3">4.1.</span> Net</h3>
+<div id="outline-container-org0ff6175" class="outline-3">
+<h3 id="org0ff6175"><span class="section-number-3">4.1.</span> Net</h3>
 <div class="outline-text-3" id="text-4-1">
 <div class="org-src-container">
-<pre class="src src-dot" id="orgf8bd366">strict digraph {
+<pre class="src src-dot" id="org83a9925">strict digraph {
   id="{id}";
+  label="{label}";
   bgcolor="transparent";
   compound=true;
   fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
@@ -423,16 +693,22 @@ TBD
 <td class="org-left">this is best as either &ldquo;TD&rdquo; for top-down, or &ldquo;LR&rdquo; for left-to-right</td>
 <td class="org-left">&ldquo;LR&rdquo;</td>
 </tr>
+
+<tr>
+<td class="org-left"><code>label</code></td>
+<td class="org-left">a user-defined label string, <i>or</i> nothing</td>
+<td class="org-left">&ldquo;&rdquo;</td>
+</tr>
 </tbody>
 </table>
 </div>
 </div>
 
-<div id="outline-container-org6289154" class="outline-3">
-<h3 id="org6289154"><span class="section-number-3">4.2.</span> Place</h3>
+<div id="outline-container-org4ba8833" class="outline-3">
+<h3 id="org4ba8833"><span class="section-number-3">4.2.</span> Place</h3>
 <div class="outline-text-3" id="text-4-2">
 <div class="org-src-container">
-<pre class="src src-dot" id="org3b43b43">strict digraph {
+<pre class="src src-dot" id="orgbdfb5e7">strict digraph {
   {id} [
     id="{id}";
     shape="circle";
@@ -491,11 +767,11 @@ TBD
 </div>
 </div>
 
-<div id="outline-container-org53c31c9" class="outline-3">
-<h3 id="org53c31c9"><span class="section-number-3">4.3.</span> Transition</h3>
+<div id="outline-container-org23ba4c9" class="outline-3">
+<h3 id="org23ba4c9"><span class="section-number-3">4.3.</span> Transition</h3>
 <div class="outline-text-3" id="text-4-3">
 <div class="org-src-container">
-<pre class="src src-dot" id="org2fd6a52">strict digraph {
+<pre class="src src-dot" id="org1c51a62">strict digraph {
   {id} [
     id="{id}";
     shape="rectangle";
@@ -563,11 +839,11 @@ TBD
 </div>
 </div>
 
-<div id="outline-container-org0c2ecce" class="outline-3">
-<h3 id="org0c2ecce"><span class="section-number-3">4.4.</span> Arc</h3>
+<div id="outline-container-orgb0a1b02" class="outline-3">
+<h3 id="orgb0a1b02"><span class="section-number-3">4.4.</span> Arc</h3>
 <div class="outline-text-3" id="text-4-4">
 <div class="org-src-container">
-<pre class="src src-dot" id="org6d7a8ef">strict digraph {
+<pre class="src src-dot" id="orgdccfdc3">strict digraph {
   {source} -&gt; {target} [
     id="{source}_{target}";
     arrowhead="{arc_head}";
@@ -635,11 +911,11 @@ a reset arc it is two filled triangles &ldquo;normalnormal&rdquo; (like a fast-f
 </div>
 </div>
 
-<div id="outline-container-org31021f5" class="outline-3">
-<h3 id="org31021f5"><span class="section-number-3">4.5.</span> Sub-net</h3>
+<div id="outline-container-org89044fe" class="outline-3">
+<h3 id="org89044fe"><span class="section-number-3">4.5.</span> Sub-net</h3>
 <div class="outline-text-3" id="text-4-5">
 <div class="org-src-container">
-<pre class="src src-dot" id="org899d21f">strict digraph {
+<pre class="src src-dot" id="org6c72eea">strict digraph {
   subgraph cluster_{id} {
     label="{id}";
     margin={margin};
@@ -688,10 +964,8 @@ a reset arc it is two filled triangles &ldquo;normalnormal&rdquo; (like a fast-f
 </div>
 </div>
 
-
-
-<div id="outline-container-orgdce197b" class="outline-3">
-<h3 id="orgdce197b"><span class="section-number-3">4.6.</span> Colors</h3>
+<div id="outline-container-orgf2117dd" class="outline-3">
+<h3 id="orgf2117dd"><span class="section-number-3">4.6.</span> Colors</h3>
 <div class="outline-text-3" id="text-4-6">
 <table border="0" cellspacing="0" cellpadding="6" rules="none" frame="none">
 
@@ -709,8 +983,8 @@ a reset arc it is two filled triangles &ldquo;normalnormal&rdquo; (like a fast-f
 <tr>
 <th scope="col" class="org-left">Object</th>
 <th scope="col" class="org-left">State</th>
-<th scope="col" class="org-left">Border</th>
-<th scope="col" class="org-left">Fill</th>
+<th scope="col" class="org-left">Line Color</th>
+<th scope="col" class="org-left">Fill Color</th>
 </tr>
 </thead>
 <tbody>
@@ -756,7 +1030,7 @@ a reset arc it is two filled triangles &ldquo;normalnormal&rdquo; (like a fast-f
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Simon Johnston</p>
-<p class="date">Created: 2023-12-14 Thu 10:22</p>
+<p class="date">Created: 2023-12-18 Mon 09:35</p>
 </div>
 </body>
 </html>

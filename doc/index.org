@@ -3,81 +3,28 @@
 #+EMAIL: johnstonskj@gmail.com
 #+LANGUAGE: en
 #+STARTUP: overview hidestars inlineimages entitiespretty
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="ptnets.css"/>
 
-#+NAME: src:pnet-first
-#+BEGIN_SRC dot :file pnet-first.svg :exports results
-strict digraph {
-    bgcolor="transparent";
-    fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
-    nodesep=0.75;
-    rankdir=LR;
-    ranksep=0.75;
-
-    // All place nodes.
-    // p0 [shape="circle"; label="●"; xlabel="start"];
-    p1 [shape="circle"; label=""; xlabel="p1"];
-    p2 [shape="circle"; label=""; xlabel="p2"];
-
-    // All transition nodes.
-    t1 [shape="rectangle"; style="filled"; fillcolor="darkgrey"; height=0.5; width=0.1; label=""; xlabel="t1"];
-
-    // All arcs.
-    p1 -> t1;
-    t1 -> p2;
-}
+#+BEGIN_SRC emacs-lisp :exports none
+(require 'ebnf-mode)
+(require 'ob-dot) ;; builtin
 #+END_SRC
 
-#+NAME: src:pnet-first
-#+CAPTION: Basic Petri Net Components
-#+RESULTS: src:pnet-first
-[[file:pnet-first.svg]]
+A Petri net is a graphical and mathematical modeling tool. The concept of Petri nets has its origin in Carl Adam Petri's
+dissertation "*Kommunikation mit Automaten*", submitted in 1962 to the faculty of Mathematics and Physics at the
+Technische Universität Darmstadt, Germany.
 
-#+BEGIN_EXAMPLE
-net net0 {
-  place p1, p2
-  transition t1
-  arc p1 -> t1 -> p2   
-}
-#+END_EXAMPLE
+Petri nets are a well-used tool for describing and studying systems that are characterized as being concurrent,
+asynchronous, distributed, parallel, nondeterministic, and/or stochastic. As a graphical tool, Petri nets can be used as
+a visual-communication aid similar to flow charts, block diagrams, and networks. In addition, tokens are used in these
+nets to simulate the dynamic and concurrent activities of systems. As a mathematical tool, it is possible to set up
+state equations, algebraic equations, and other mathematical models governing the behavior of systems.
 
-* PTNet Core
+* PTNet Modules
 
-#+NAME: src:pnets-model-core
-#+BEGIN_SRC plantuml :file pnets-model-core.svg
-skinparam backgroundColor transparent
-skinparam style strictuml
-skinparam linetype polyline
-skinparam nodesep 100
-
-hide circle
-hide empty members
-
-package ptnet  {
-    class NodeId <<datatype>>
-
-    interface HasIdentity {
-        +id: NodeId
-    }
-
-    interface HasLabel {
-        +label: Option<String>
-    }
-
-    interface HasDisplayLabel {
-        display_label: Option<String>
-    }
-}
-#+END_SRC
-
-#+NAME: fig:pnets-model-core
-#+CAPTION: Core Interfaces
-#+RESULTS: src:pnets-model-core
-[[file:pnets-model-core.svg]]
-
-
-
-#+NAME: src:pnets-model-packages
-#+BEGIN_SRC plantuml :file pnets-model-packages.svg
+#+NAME: src:ptnet-model-packages
+#+BEGIN_SRC plantuml :file ptnet-model-packages.svg
 skinparam backgroundColor transparent
 skinparam style strictuml
 skinparam linetype polyline
@@ -108,15 +55,84 @@ package ptnet  {
 }
 #+END_SRC
 
-#+NAME: fig:pnets-model-packages
+#+NAME: fig:ptnet-model-packages
 #+CAPTION: Core Modules
-#+RESULTS: src:pnets-model-packages
-[[file:pnets-model-packages.svg]]
+#+RESULTS: src:ptnet-model-packages
+[[file:ptnet-model-packages.svg]]
+
+** Common Types
+
+#+NAME: src:ptnet-model-core
+#+BEGIN_SRC plantuml :file ptnet-model-core.svg
+skinparam backgroundColor transparent
+skinparam style strictuml
+skinparam linetype polyline
+skinparam nodesep 100
+
+hide circle
+hide empty members
+
+package ptnet  {
+    class NodeId <<datatype>>
+
+    interface HasIdentity {
+        +id: NodeId
+    }
+
+    interface HasLabel {
+        +label: Option<String>
+    }
+
+    interface HasDisplayLabel {
+        display_label: Option<String>
+    }
+}
+class boolean <<datatype>>
+class unsigned <<datatype>>
+class positive <<datatype>>
+#+END_SRC
+
+#+NAME: fig:ptnet-model-core
+#+CAPTION: Common Types and Interfaces
+#+RESULTS: src:ptnet-model-core
+[[file:ptnet-model-core.svg]]
 
 ** Net Core Module
 
-#+NAME: src:pnets-net-model
-#+BEGIN_SRC plantuml :file pnets-net-model.svg
+A Net $N$ consists of a tuple of *places* (the set $P$), *transitions* (the set $T$), and *arcs* (the set
+$A$) that connect them. Note that arcs are historically known as *flow relations* and the set is named $F$.
+
+$$\tag{Net} N = \left\langle P,T,A \right\rangle$$
+
+The sets of places $P$ and transitions $T$ are disjoint.
+
+$$ P \cap T = \emptyset$$
+
+Arcs are a directed connection between a place/transition pair. We will use the notation $a_{src}$
+for the source end and $a_{tgt}$ for the target end of an arc $a$.
+
+$$\tag{Net Arc} A = \left(P \times T \right) \cup \left(T \times P \right)$$
+
+*Input arcs* connect a source place to a target transition.
+
+$$\tag{Input Arcs} a_{in} = \left\{ a \in A \mid a_{tgt} \in T \right\}$$
+$$ a_{in}(t) = \left \{ a \in A \mid a_{tgt} = t \right \}$$
+
+The set of *input places* for a transition $t$ is called its *preset* or ${}^{\bullet}t$.
+
+$$\tag{Preset} {}^{\bullet}t = \left\{ p \in P \mid A(p,t) \right\}$$
+
+*Output arcs* connect a source transition to a target place.
+
+$$\tag{Output Arcs} a_{out} = \left\{ a \in A \mid a_{src} \in T \right\}$$
+$$ a_{out}(t) = \left\{ a \in A \mid a_{src} = t \right\}$$
+
+The set of *output places* for a transition $t$ is called its *postset* or $t^{\bullet}$.
+
+$$\tag{Postset} t^{\bullet} = \left\{ p \in P \mid A(t,p) \right\}$$
+
+#+NAME: src:ptnet-model-net
+#+BEGIN_SRC plantuml :file ptnet-model-net.svg
 skinparam backgroundColor transparent
 skinparam style strictuml
 skinparam linetype polyline
@@ -155,15 +171,83 @@ package pnet {
 }
 #+END_SRC
 
-#+NAME: fig:pnets-net-model
-#+CAPTION: Sim Net Module
-#+RESULTS: src:pnets-net-model
-[[file:pnets-net-model.svg]]
+#+NAME: fig:ptnet-model-net
+#+CAPTION: Core Net Module
+#+RESULTS: src:ptnet-model-net
+[[file:ptnet-model-net.svg]]
+
+*Textual Notation*
+
+#+BEGIN_EXAMPLE
+net net0 {
+  place p1, p2
+  transition t1
+  arc p1 -> t1 -> p2   
+}
+#+END_EXAMPLE
+
+*Graphical Notation*
+
+#+NAME: src:ptnet-graph-core
+#+BEGIN_SRC dot :file ptnet-graph-core.svg :exports results
+strict digraph {
+    id="net0";
+    bgcolor="transparent";
+    fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
+    nodesep=0.75;
+    rankdir=LR;
+    ranksep=0.75;
+
+    // All place nodes.
+    p1 [shape="circle"; label=""; xlabel="p1"];
+    p2 [shape="circle"; label=""; xlabel="p2"];
+
+    // All transition nodes.
+    t1 [shape="rectangle"; style="filled"; fillcolor="darkgrey"; height=0.5; width=0.1; label=""; xlabel="t1"];
+
+    // All arcs.
+    p1 -> t1;
+    t1 -> p2;
+}
+#+END_SRC
+
+#+NAME: src:ptnet-graph-core
+#+CAPTION: Core Net
+#+RESULTS: src:ptnet-graph-core
+[[file:ptnet-graph-core.svg]]
 
 ** Sim Core Module
 
-#+NAME: src:pnets-sim-model
-#+BEGIN_SRC plantuml :file pnets-sim-model.svg
+Places can contain *tokens*; the current state of the modeled system (termed the *marking function* $M$) is given by the
+number of tokens in each place.
+
+$$\tag{Marking Function} M: P \mapsto \mathbb{N}$$
+
+The initial marking of a net is noted as $M_{im}$ or more commonly $M_0$. A *marked net* extends the Net tuple
+with a particular marking $M$.
+
+$$\tag{Marked Net} N = \left\langle P,T,A,M \right\rangle$$
+
+Transitions are active components. They model activities which can occur (the transition *fires*), thus changing the
+state of the system (the marking of the Petri net). Transitions are only allowed to fire if they are *enabled*, which
+means that all the preconditions for the activity must be fulfilled, i.e. there are enough tokens available in the input
+places. For this check we use the undefined function $min$ which can only be defined as we define the type of tokens
+later.
+
+$$\tag{Enabled Function} enabled\left(t \in T \right) = \forall p \in {}^{\bullet}t: min\left(A\left(p,t\right)\right)$$
+
+A net $N$ is therefore enabled *iff* any transition in $N$ is enabled.
+
+$$enabled\left(N\right) \iff \exists t \in T: enabled\left(t\right)$$
+
+When the transition fires, it removes tokens from its input places and adds some at all of its output places. The number
+of tokens removed or added depends on the cardinality of each arc.
+
+The firing of transitions in the marking $M_n$ results in the new marking $M_{n+1}$. The interactive firing of
+transitions in subsequent markings is called the **token game**.
+
+#+NAME: src:ptnet-model-sim
+#+BEGIN_SRC plantuml :file ptnet-model-sim.svg
 skinparam backgroundColor transparent
 skinparam style strictuml
 skinparam linetype polyline
@@ -180,7 +264,7 @@ package pnet {
             +value: Value
         }
         interface Value {
-            +default: Value
+            {static} +default: Value
         }
         Tokens +-- Value
         interface Marking {
@@ -188,11 +272,6 @@ package pnet {
             +marking(NodeId): Tokens
         }
         Marking ..> Tokens
-        
-        interface MarkingFormatter {
-            +format(Marking)
-        }
-        MarkingFormatter ..> Marking
         
         class Step <<datatype>>
         class Duration <<datatype>>
@@ -206,15 +285,63 @@ package pnet {
 }
 #+END_SRC
 
-#+NAME: fig:pnets-sim-model
+#+NAME: fig:ptnet-model-sim
 #+CAPTION: Sim Core Module
-#+RESULTS: src:pnets-sim-model
-[[file:pnets-sim-model.svg]]
+#+RESULTS: src:ptnet-model-sim
+[[file:ptnet-model-sim.svg]]
+
+*Textual Notation*
+
+#+BEGIN_EXAMPLE
+net net0 {
+  place p1, p2, p3
+  transition t1, t2
+  arc p1 -> t1 -> p2 -> t2 -> p3
+
+  initial marking {
+    p1 = true
+  } 
+}
+#+END_EXAMPLE
+
+*Graphical Notation*
+
+#+NAME: src:ptnet-graph-sim
+#+BEGIN_SRC dot :file ptnet-graph-sim.svg :exports results
+strict digraph {
+    id="net0";
+    bgcolor="transparent";
+    fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
+    nodesep=0.75;
+    rankdir=LR;
+    ranksep=0.75;
+
+    // All place nodes.
+    p1 [shape="circle"; label="●"; xlabel="p1"];
+    p2 [shape="circle"; color="darkgrey"; label=""; xlabel="p2"];
+    p3 [shape="circle"; color="darkgrey"; label=""; xlabel="p3"];
+
+    // All transition nodes.
+    t1 [shape="rectangle"; style="filled"; color="darkgreen"; fillcolor="lightgreen"; height=0.5; width=0.1; label=""; xlabel="t1"];
+    t2 [shape="rectangle"; style="filled"; color="darkgrey"; fillcolor="lightgrey"; height=0.5; width=0.1; label=""; xlabel="t2"];
+
+    // All arcs.
+    p1 -> t1;
+    t1 -> p2;
+    p2 -> t2;
+    t2 -> p3;
+}
+#+END_SRC
+
+#+NAME: src:ptnet-graph-sim
+#+CAPTION: Basic Petri Net Components
+#+RESULTS: src:ptnet-graph-sim
+[[file:ptnet-graph-sim.svg]]
 
 ** Guarded Extension Module
 
-#+NAME: src:pnets-guarded-model
-#+BEGIN_SRC plantuml :file pnets-guarded-model.svg
+#+NAME: src:ptnet-model-guarded
+#+BEGIN_SRC plantuml :file ptnet-model-guarded.svg
 skinparam backgroundColor transparent
 skinparam style strictuml
 skinparam linetype polyline
@@ -236,15 +363,23 @@ package pnet {
 }
 #+END_SRC
 
-#+NAME: fig:pnets-guarded-model
-#+CAPTION: Guarded Extension Module
-#+RESULTS: src:pnets-guarded-model
-[[file:pnets-guarded-model.svg]]
+#+NAME: fig:ptnet-model-guarded
+#+CAPTION: Guarded Transitions Module
+#+RESULTS: src:ptnet-model-guarded
+[[file:ptnet-model-guarded.svg]]
+
+*Textual Notation*
+
+TBD
+
+*Graphical Notation*
+
+TBD
 
 ** Inhibited Extension Module
 
-#+NAME: src:pnets-inhibited-model
-#+BEGIN_SRC plantuml :file pnets-inhibited-model.svg
+#+NAME: src:ptnet-model-inhibited
+#+BEGIN_SRC plantuml :file ptnet-model-inhibited.svg
 skinparam backgroundColor transparent
 skinparam style strictuml
 skinparam linetype polyline
@@ -265,15 +400,122 @@ package pnet {
 }
 #+END_SRC
 
-#+NAME: fig:pnets-inhibited-model
-#+CAPTION: Inhibited Extension Module
-#+RESULTS: src:pnets-inhibited-model
-[[file:pnets-inhibited-model.svg]]
+#+NAME: fig:ptnet-model-inhibited
+#+CAPTION: Inhibited and Reset Arcs Module
+#+RESULTS: src:ptnet-model-inhibited
+[[file:ptnet-model-inhibited.svg]]
+
+*Textual Notation*
+
+#+BEGIN_EXAMPLE
+net net0 {
+  place p1, p2
+  transition t1
+  arc p1 -inhibitor> t1
+  arc t1 -reset> p2   
+}
+#+END_EXAMPLE
+
+*Graphical Notation*
+
+#+NAME: src:ptnet-graph-inhibited
+#+BEGIN_SRC dot :file ptnet-graph-inhibited.svg :exports results
+strict digraph {
+    bgcolor="transparent";
+    fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
+    nodesep=0.75;
+    rankdir=LR;
+    ranksep=0.75;
+
+    // All place nodes.
+    p1 [shape="circle"; label="●"; xlabel="p1"];
+    p2 [shape="circle"; label=""; xlabel="p2"];
+
+    // All transition nodes.
+    t1 [shape="rectangle"; style="filled"; fillcolor="darkgrey"; height=0.5; width=0.1; label=""; xlabel="t1"];
+
+    // All arcs.
+    p1 -> t1 [arrowhead="odot"; label=<<I>inhibitor</I>>];
+    t1 -> p2 [arrowhead="normalnormal"; arrowsize=0.66; label=<<I>reset</I>>];
+}
+#+END_SRC
+
+#+NAME: fig:ptnet-graph-inhibited
+#+CAPTION: Inhibited and Reset Arcs
+#+RESULTS: src:ptnet-graph-inhibited
+[[file:ptnet-graph-inhibited.svg]]
+
+** Read-Only Arc Extension Module
+
+#+NAME: src:ptnet-model-readonly
+#+BEGIN_SRC plantuml :file ptnet-model-readonly.svg
+skinparam backgroundColor transparent
+skinparam style strictuml
+skinparam linetype polyline
+skinparam nodesep 100
+
+hide empty members
+
+package pnet {
+    package net {
+        interface Arc
+    }
+    package readonly {
+        interface ReadOnlyArc {}
+        ReadOnlyArc -right-|> Arc
+    }
+}
+#+END_SRC
+
+#+NAME: fig:ptnet-model-readonly
+#+CAPTION: Read-Only Arcs Extension Module
+#+RESULTS: src:ptnet-model-readonly
+[[file:ptnet-model-readonly.svg]]
+
+*Textual Notation*
+
+#+BEGIN_EXAMPLE
+net net0 {
+  place p1, p2
+  transition t1
+  arc p1 -read- t1
+  arc t1 -> p2   
+}
+#+END_EXAMPLE
+
+*Graphical Notation*
+
+#+NAME: src:ptnet-graph-readonly
+#+BEGIN_SRC dot :file ptnet-graph-readonly.svg :exports results
+strict digraph {
+    bgcolor="transparent";
+    fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
+    nodesep=0.75;
+    rankdir=LR;
+    ranksep=0.75;
+
+    // All place nodes.
+    p1 [shape="circle"; label="●"; xlabel="p1"];
+    p2 [shape="circle"; label=""; xlabel="p2"];
+
+    // All transition nodes.
+    t1 [shape="rectangle"; style="filled"; fillcolor="darkgrey"; height=0.5; width=0.1; label=""; xlabel="t1"];
+
+    // All arcs.
+    p1 -> t1 [arrowhead="none"; label=<<I>read-only</I>>];
+    t1 -> p2;
+}
+#+END_SRC
+
+#+NAME: src:ptnet-graph-readonly
+#+CAPTION: Read-only Arcs Extension
+#+RESULTS: src:ptnet-graph-readonly
+[[file:ptnet-graph-readonly.svg]]
 
 ** Timed Extension Module
 
-#+NAME: src:pnets-timed-model
-#+BEGIN_SRC plantuml :file pnets-timed-model.svg
+#+NAME: src:ptnet-model-timed
+#+BEGIN_SRC plantuml :file ptnet-model-timed.svg
 skinparam backgroundColor transparent
 skinparam style strictuml
 skinparam linetype polyline
@@ -301,15 +543,23 @@ package pnet {
 }
 #+END_SRC
 
-#+NAME: fig:pnets-timed-model
-#+CAPTION: Timed Extension Module
-#+RESULTS: src:pnets-timed-model
-[[file:pnets-timed-model.svg]]
+#+NAME: fig:ptnet-model-timed
+#+CAPTION: Timed Transitions Extension Module
+#+RESULTS: src:ptnet-model-timed
+[[file:ptnet-model-timed.svg]]
+
+*Textual Notation*
+
+TBD
+
+*Graphical Notation*
+
+TBD
 
 ** Weighted Extension Module
 
-#+NAME: src:pnets-weighted-model
-#+BEGIN_SRC plantuml :file pnets-weighted-model.svg
+#+NAME: src:ptnet-model-weighted
+#+BEGIN_SRC plantuml :file ptnet-model-weighted.svg
 skinparam backgroundColor transparent
 skinparam style strictuml
 skinparam linetype polyline
@@ -336,16 +586,75 @@ package pnet {
 }
 #+END_SRC
 
-#+NAME: fig:pnets-weighted-model
-#+CAPTION: Weighted Extension Module
-#+RESULTS: src:pnets-weighted-model
-[[file:pnets-weighted-model.svg]]
+#+NAME: fig:ptnet-model-weighted
+#+CAPTION: Weighted Arcs Extension Module
+#+RESULTS: src:ptnet-model-weighted
+[[file:ptnet-model-weighted.svg]]
+
+*Textual Notation*
+
+#+BEGIN_EXAMPLE
+net net0 {
+  place p1 {
+    capacity = 2
+  }
+  place p2 {
+    capacity = inf
+  }
+  
+  transition t1
+  
+  arc p1 -> t1 {
+    weight = 2
+  }
+  arc t1 -> p2 {
+    weight = 1
+  }
+}
+#+END_EXAMPLE
+
+*Graphical Notation*
+
+#+NAME: src:ptnet-graph-weighted
+#+BEGIN_SRC dot :file ptnet-graph-weighted.svg :exports results
+strict digraph {
+    bgcolor="transparent";
+    fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
+    nodesep=0.75;
+    rankdir=LR;
+    ranksep=0.75;
+
+    // All place nodes.
+    p1 [shape="circle"; label="|2|"; xlabel="p1"];
+    p2 [shape="circle"; label=""; xlabel="p2"];
+
+    // All transition nodes.
+    t1 [shape="rectangle"; style="filled"; fillcolor="darkgrey"; height=0.5; width=0.1; label=""; xlabel="t1"];
+
+    // All arcs.
+    p1 -> t1 [arrowhead="none"; label="2"];
+    t1 -> p2;
+}
+#+END_SRC
+
+#+NAME: src:ptnet-graph-weighted
+#+CAPTION: Weighted Arcs Extension
+#+RESULTS: src:ptnet-graph-weighted
+[[file:ptnet-graph-weighted.svg]]
 
 * Elementary Nets
 
+An Elementary net is a kind of place/transition net with the following characteristics.
 
-#+NAME: src:pnets-elementary-net
-#+BEGIN_SRC plantuml :file pnets-elementary-net.svg
+- The token type is the boolean type \\(\mathbb{B}\\).
+- Arcs do not have weights, or are modeled with fixed weights of 1.
+- Places do not have capacity constraints, or are modeled with infinite \\(\infty\\) capacity.
+- Transitions do not have duration values, or are modeled with a fixed duration of 0.
+- Transitions do not have guard expressions, or are modeled with a fixed guard returning true \\(\top\\).
+- No inhibitor, reset, or read-only arcs are allowed.
+
+#+NAME: src:ptnet-model-elementary-net
+#+BEGIN_SRC plantuml :file ptnet-model-elementary-net.svg
 skinparam backgroundColor transparent skinparam style strictuml skinparam linetype polyline skinparam nodesep 100
 
 hide circle
@@ -392,10 +701,10 @@ package elementary {
 }
 #+END_SRC
 
-#+NAME: fig:pnets-elementary-net
+#+NAME: fig:ptnet-model-elementary-net
 #+CAPTION: Elementary Net Module
-#+RESULTS: src:pnets-elementary-net
-[[file:pnets-elementary-net.svg]]
+#+RESULTS: src:ptnet-model-elementary-net
+[[file:ptnet-model-elementary-net.svg]]
 
 * Appendix: PTNet Language
 
@@ -484,7 +793,7 @@ arc_name_or_expression_list =
 arc_name_or_expression =
     name | "(" arc_expression ")" ;
 
-arc_symbol = "->" | "-inhibitor>" | "-reset>" ;
+arc_symbol = "->" | "-inhibitor>" | "-reset>" | "-read-" ;
 
 subnet =
     "net" name "{" property* defaults? public_places? node_or_arc* "}" ;
@@ -544,6 +853,7 @@ tuple_value =
 #+BEGIN_SRC dot :file graphviz-ex-net.svg :exports code
 strict digraph {
   id="{id}";
+  label="{label}";
   bgcolor="transparent";
   compound=true;
   fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
@@ -558,6 +868,7 @@ strict digraph {
 | ~id~         | use the prefix string "net" followed by a unique identifier (integer) | "net0"  |
 | ~seperation~ | determine node/rank spacing                                           | 0.75    |
 | ~rankdir~    | this is best as either "TD" for top-down, or "LR" for left-to-right   | "LR"    |
+| ~label~      | a user-defined label string, /or/ nothing                               | ""      |
 
 ** Place
 
@@ -628,7 +939,7 @@ strict digraph {
 | ~source~        | the ~id~ of the arc source                                | N/A      |
 | ~target~        | the ~id~ of the arc target                                | N/A      |
 | ~arc_head~      | the arrow head shape, different for different arc /types/ | "normal" |
-| ~scale~         | a scaling factor for the arrow shape                    | 1.0      |
+| ~scale~         | a scaling factor for the arrow shape       | 1.0      |
 | ~display_label~ | a display label for the arc                             | ""       |
 
 For normal arcs the ~arc_head~ is "normal" which is a filled triangular head; for inhibitor arcs it is an open circle "odot", for
@@ -652,11 +963,9 @@ strict digraph {
 | ~label~     | a user-defined label string, /or/ the value of ~id~                         | ~{id}~  |
 | ~margin~    | the margin in px between the cluster boundary and the included elements | 24      |
 
-
-
 ** Colors
 
-| Object     | State                | Border      | Fill         |
+| Object     | State                | Line Color | Fill Color |
 |------------+----------------------+-------------+--------------|
 | Place      | Static               | "black"     | N/A          |
 | Transition | Static               | "black"     | "darkgrey"   |
