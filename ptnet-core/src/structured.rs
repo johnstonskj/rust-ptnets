@@ -11,7 +11,7 @@ use crate::net::Net;
 // Public Types
 // ------------------------------------------------------------------------------------------------
 
-pub trait StructuredNet: Net {
+pub trait HasSubnet: Net {
     fn parent(&self) -> Option<&Self>;
     fn subnets(&self) -> Vec<&Self>;
 }

@@ -1,9 +1,9 @@
 /*!
 This module provides an extension to include weighted arcs and capacity-limited places.
 
-## Arc Weights
+# Arc Weights
 
-Arcs may have an associated weight that denotes the number of tokens that are carried on that arc. The Net tuple is
+Arcs may have an associated /weight/, sometimes termed its /cardinality/ or /multiplicity/, that denotes the number of tokens that are carried on that arc. The Net tuple is
 therefore extended with a *weight function* \\(W\\). A Net without explicit arc weights is behaviorally the same as a
 Net where all arc weights are set to 1. Where a Net does support arc weights any unspecified weight assumes the default
 value of 1.
@@ -21,7 +21,7 @@ $$\tag{Weighted min} min(a \in A) = \overset{a}{\leftarrow} \in P \land M(\overs
 
 An output arc will transfer \\(W(a)\\) tokens from the transition to the output place \\(\overset{a}{\rightarrow}\\).
 
-## Place Capacities
+# Place Capacities
 
 Correspondingly, it is possible to add a capacity limit to places such that the capacity is an upper bound on the number
 of tokens that may be present at the place. A *capacity-limited net* extends the Net tuple with a *capacity function*
@@ -44,10 +44,16 @@ $$\tag{Capacity Limit} free(a \in A) = \overset{a}{\rightarrow} \in P \land K(\o
 
 $$\tag{Limited enabled} enabled\left(t \in T \right) = \forall p_{in} \in {}^{\bullet}t: min(A(p_{in},t)) \land \forall p_{out} \in t^{\bullet}: free(A(t,p_{out}))$$
 
+# Graphical Representation
+
+![Example Weighted Arc/Capacity-Limited Place](https://github.com/johnstonskj/rust-ptnets/raw/main/doc/ptnet-graph-weighted.svg)
+
 */
 
-use crate::net::{Arc, Place};
+use crate::net::{Arc, Net, Place};
 use crate::sim::Tokens;
+use crate::NodeId;
+use std::fmt::Display;
 use std::hash::Hash;
 
 // ------------------------------------------------------------------------------------------------
@@ -57,7 +63,7 @@ use std::hash::Hash;
 ///
 /// This trait associates a weight, in token values, to an arc.
 ///
-pub trait WeightedArc: Arc {
+pub trait HasWeight: Arc {
     type Value: Default + PartialEq + Eq + PartialOrd + Ord + Hash;
     type Tokens: Tokens<Value = Self::Value>;
 
@@ -89,7 +95,7 @@ pub trait WeightedArc: Arc {
 ///
 /// This trait associates a capacity limit, in token values, to a place.
 ///
-pub trait CapacityLimitedPlace: Place {
+pub trait HasCapacityLimit: Place {
     type Value: Default + PartialEq + Eq + PartialOrd + Ord + Hash;
     type Tokens: Tokens<Value = Self::Value>;
 
@@ -116,4 +122,20 @@ pub trait CapacityLimitedPlace: Place {
     fn is_initial(&self) -> bool {
         self.capacity() == &Self::Tokens::default()
     }
+}
+
+pub trait HasWeightedArcs: Net {
+    type Value: Default + Display + PartialEq + Eq + PartialOrd + Ord + Hash;
+    type Tokens: Tokens<Value = Self::Value>;
+
+    fn add_weighted_arc(&mut self, source: NodeId, target: NodeId, weight: Self::Tokens);
+    fn weighted_arcs(&self) -> Box<dyn Iterator<Item = &Self::Arc> + '_>;
+}
+
+pub trait HasCapacityLimitedPlaces: Net {
+    type Value: Default + Display + PartialEq + Eq + PartialOrd + Ord + Hash;
+    type Tokens: Tokens<Value = Self::Value>;
+
+    fn add_capacity_limited_place(&mut self, capacity: Self::Tokens) -> NodeId;
+    fn capacity_limited_places(&self) -> Box<dyn Iterator<Item = &Self::Place> + '_>;
 }

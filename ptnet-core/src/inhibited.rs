@@ -21,9 +21,14 @@ A net that includes such arcs is now defined to include this extended set of arc
 
 $$\tag{Inhibited Net} N = \left\langle P,T,A^{+} \right\rangle$$
 
+# Graphical Representation
+
+![Example Inhibitor/Reset Arcs](https://github.com/johnstonskj/rust-ptnets/raw/main/doc/ptnet-graph-inhibited.svg)
+
 */
 
-use crate::net::Arc;
+use crate::net::{Arc, Net};
+use crate::NodeId;
 
 // ------------------------------------------------------------------------------------------------
 // Public Types
@@ -32,9 +37,14 @@ use crate::net::Arc;
 ///
 /// This trait extends the notion of an Arc so that it acts as an inhibitor.
 ///
-pub trait InhibitorArc: Arc {}
+pub trait IsInhibitor: Arc {}
 
 ///
 /// This trait extends the notion of an Arc so that it acts as a reset.
 ///
-pub trait ResetArc: Arc {}
+pub trait IsReset: Arc {}
+
+pub trait HasInhibitorArcs: Net {
+    fn add_inhibitor_arc(&mut self, source: NodeId, target: NodeId);
+    fn add_reset_arc(&mut self, source: NodeId, target: NodeId);
+}

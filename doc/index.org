@@ -502,7 +502,7 @@ strict digraph {
     t1 [shape="rectangle"; style="filled"; fillcolor="darkgrey"; height=0.5; width=0.1; label=""; xlabel="t1"];
 
     // All arcs.
-    p1 -> t1 [arrowhead="none"; label=<<I>read-only</I>>];
+    p1 -> t1 [arrowhead="dot"; label=<<I>read-only</I>>];
     t1 -> p2;
 }
 #+END_SRC
@@ -920,6 +920,8 @@ strict digraph {
 | ~size~       | in this case the height of the transition, its width is 20% of the height | 0.5        |
 | ~label~      | a user-defined label string, /or/ the value of ~id~                           | ~{id}~       |
 
+For immediate transitions the size is specified as a fixed value, =0.02= to give a visually solid bar.
+
 ** Arc
 
 #+NAME: src:graphviz-ex-arc
@@ -943,7 +945,8 @@ strict digraph {
 | ~display_label~ | a display label for the arc                             | ""       |
 
 For normal arcs the ~arc_head~ is "normal" which is a filled triangular head; for inhibitor arcs it is an open circle "odot", for
-a reset arc it is two filled triangles "normalnormal" (like a fast-forward symbol) and a ~scale~ factor of 0.66.
+a reset arc it is two filled triangles "normalnormal" (like a fast-forward symbol) and a ~scale~ factor of 0.66. A
+read-only arc is a filled circle "odot".
 
 ** Sub-net
 

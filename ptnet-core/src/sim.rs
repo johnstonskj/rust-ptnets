@@ -3,6 +3,20 @@ This module provides the basic behavioral traits for a net.
 
 The traits in this module are used to develop a simulation of a net, also known as a *token game*.
 The [`Simulation`] trait describes the component that executes the net [`Step`] by step.
+
+# Graphical Representation
+
+![Example Marked Net](https://github.com/johnstonskj/rust-ptnets/raw/main/doc/ptnet-graph-sim.svg)
+
+# Token Types (Color)
+
+In some cases it is desirable to be able to distinguish between *token types* or token *colors*. In this case the
+definition of a Colored Petri Net (CPN) adds the set of colors \\(C\\) to the tuple.
+
+$$\tag{Colored Petri Net} CPN = \left\langle P,T,A,C \right\rangle$$
+
+$$\tag{Colored Marking Function} M: P \mapsto C \times \mathbb{N}$$
+
 */
 
 use crate::error::Error;
@@ -59,23 +73,20 @@ pub trait Marking: Clone + Debug {
 // Public Types  Simulation
 // ------------------------------------------------------------------------------------------------
 
+pub type TimeValue = u64;
+
 ///
 /// The type that represents steps in the simulation. Note that it is not possible to perform
 /// operations directly on a step, you can add and subtract durations.
 ///
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Step(u64);
+pub struct Step(TimeValue);
 
 ///
 /// The type that represents a duration, or number of steps in the simulation.
 ///
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Duration(u64);
-
-///
-/// A constant used to denote an instantaneous event.
-///
-pub const IMMEDIATE: Duration = Duration::ZERO;
+pub struct Duration(TimeValue);
 
 ///
 ///
@@ -119,12 +130,12 @@ pub trait Simulation: Debug {
     /// Return a list of node identifiers corresponding to all the enabled transitions at this
     /// step.
     ///
-    fn enabled(&self) -> Vec<NodeId>;
+    fn enabled(&self) -> Box<dyn Iterator<Item = &NodeId> + '_>;
 
     ///
     /// Return `true` if `transition` is enabled at this step, else `false`.
     ///
-    fn is_enabled(&self, transition: &Self::Transition) -> bool;
+    fn is_enabled(&self, transition: &NodeId) -> bool;
 
     ///
     /// Not all nets can determine termination, if it is possible to determine termination return
@@ -145,14 +156,14 @@ impl Display for Step {
     }
 }
 
-impl AsRef<u64> for Step {
-    fn as_ref(&self) -> &u64 {
+impl AsRef<TimeValue> for Step {
+    fn as_ref(&self) -> &TimeValue {
         &self.0
     }
 }
 
-impl From<Step> for u64 {
-    fn from(value: Step) -> u64 {
+impl From<Step> for TimeValue {
+    fn from(value: Step) -> TimeValue {
         value.0
     }
 }
@@ -200,14 +211,14 @@ impl Display for Duration {
     }
 }
 
-impl AsRef<u64> for Duration {
-    fn as_ref(&self) -> &u64 {
+impl AsRef<TimeValue> for Duration {
+    fn as_ref(&self) -> &TimeValue {
         &self.0
     }
 }
 
-impl From<Duration> for u64 {
-    fn from(value: Duration) -> u64 {
+impl From<Duration> for TimeValue {
+    fn from(value: Duration) -> TimeValue {
         value.0
     }
 }

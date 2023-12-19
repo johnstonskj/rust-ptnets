@@ -1,7 +1,7 @@
 use ptnet_core::{
     net::{Net, NetBuilder, PlaceBuilder, TransitionBuilder},
     sim::{Marking, Simulation},
-    trace::{MatrixTracer, TraceableSimulation},
+    trace::{MatrixTracer, TraceableSimulation}, fmt::{NetMatrixFormatter, print_net},
 };
 use ptnet_elementary::{
     Dot, ElementaryNet, ElementaryNetBuilder, ElementarySimulation, SimpleArc, SimpleMarking,
@@ -9,7 +9,7 @@ use ptnet_elementary::{
 };
 
 #[test]
-fn test_make_simple_net() {
+fn test_simulate_simple_net() {
     let mut net = ElementaryNet::default();
     let p0 = net.add_place();
     let p1 = net.add_place();
@@ -21,9 +21,14 @@ fn test_make_simple_net() {
     net.add_arc(p1, t1);
     net.add_arc(t1, p2);
 
+    let mut f = NetMatrixFormatter::default();
+    print_net(&net, &mut f).unwrap();
+
+    println!("-----\nMaking marking");
     let mut im = SimpleMarking::from(&net);
     im.mark(p0, Dot::from(true));
 
+    println!("-----\nMaking tracer");
     let tracer: MatrixTracer<
         SimplePlace,
         SimpleTransition,
@@ -33,9 +38,12 @@ fn test_make_simple_net() {
         SimpleMarking,
         ElementarySimulation,
     > = MatrixTracer::default();
+
+    println!("-----\nMaking simulation");
     let mut sim = ElementarySimulation::new(net.into(), im.clone());
     sim.add_tracer(tracer.into());
 
+    println!("-----\nStarting simulation");
     while !sim.is_complete().unwrap_or_default() {
         sim.step().unwrap();
     }

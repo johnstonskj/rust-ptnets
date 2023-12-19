@@ -224,11 +224,10 @@ where
     type Net = N;
 
     fn fmt_net<W: Write>(&self, w: &mut W, net: &Self::Net) -> Result<(), Error> {
-        let mut places: Vec<NodeId> = net.places().iter().map(|place| place.id()).collect();
+        let mut places: Vec<NodeId> = net.places().map(|place| place.id()).collect();
         places.sort();
         let mut transitions: Vec<NodeId> = net
             .transitions()
-            .iter()
             .map(|transition| transition.id())
             .collect();
         transitions.sort();
@@ -260,11 +259,8 @@ where
                 .join("+")
         )?;
 
-        let arcs: Vec<(NodeId, NodeId)> = net
-            .arcs()
-            .iter()
-            .map(|arc| (arc.source(), arc.target()))
-            .collect();
+        let arcs: Vec<(NodeId, NodeId)> =
+            net.arcs().map(|arc| (arc.source(), arc.target())).collect();
 
         for place in &places {
             writeln!(

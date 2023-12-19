@@ -15,4 +15,8 @@ rustdoc-args = [ "--html-in-header", "doc/katex-header.html" ]
 targets = ["x86_64-unknown-linux-gnu"]
 all-features = true
 
+[features]
+log-tracer = ["tracing"]
+
 [dependencies]
+tracing = { version = "0.1.40" , optional = true }

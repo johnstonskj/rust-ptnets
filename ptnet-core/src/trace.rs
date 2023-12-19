@@ -63,20 +63,29 @@ pub trait SimulationTracer {
     fn step_started(&self, step: Step, sim: &Self::Simulation) {}
 
     ///
-    /// This is generated for any place that has had its tokens updated, either added or
-    /// subtracted.
-    ///
-    fn place_updated(&self, place: NodeId, sim: &Self::Simulation) {}
-
-    ///
-    /// This is generated when a transition is fired. At this point all input tokens have been
-    /// consumed from the preset but no output tokens have been transmitted.
+    /// This is generated when a transition is fired.
     ///
     fn transition_started(&self, transition: NodeId, sim: &Self::Simulation) {}
 
     ///
-    /// This is generated when a transition has been completed. At this point all output tokens
-    /// have been transmitted to the postset.
+    /// This is generated for any place that has had its tokens updated, either added or
+    /// subtracted, during transition.
+    ///
+    fn place_updated(&self, place: NodeId, sim: &Self::Simulation) {}
+
+    ///
+    /// This is generated when a transition is enabled or disabled.
+    ///
+    fn transition_enabled(&self, transition: NodeId, state: bool, sim: &Self::Simulation) {}
+
+    ///
+    /// This is generated during transition firing to note that all input places have been
+    /// consumed, and now output places will be updated.
+    ///
+    fn fire(&self, transition: NodeId, sim: &Self::Simulation) {}
+
+    ///
+    /// This is generated when a transition firing has been completed.
     ///
     fn transition_ended(&self, transition: NodeId, sim: &Self::Simulation) {}
 
@@ -220,13 +229,15 @@ where
                 .collect::<Vec<String>>()
                 .join("+")
         );
+
+        // display initial marking
+        self.step_ended(Step::ZERO, sim)
     }
 
     fn step_ended(&self, step: Step, sim: &Self::Simulation) {
         let (places, transitions) = self.columns(&sim.net());
 
         let marking = sim.current_marking();
-        let enabled = sim.enabled();
 
         println!(
             "| {:>FORMAT_FIELD_WIDTH$} | {} |",
@@ -240,7 +251,7 @@ where
                 })
                 .chain(transitions.iter().map(|id| format!(
                     "{:^FORMAT_FIELD_WIDTH$}",
-                    if enabled.contains(id) {
+                    if sim.is_enabled(id) {
                         TRANSITION_ENABLED
                     } else {
                         TRANSITION_DISABLED
@@ -272,14 +283,113 @@ where
 
     #[inline(always)]
     fn columns(&self, net: &<S as Simulation>::Net) -> (Vec<NodeId>, Vec<NodeId>) {
-        let mut places: Vec<NodeId> = net.places().iter().map(|place| place.id()).collect();
+        let mut places: Vec<NodeId> = net.places().map(|place| place.id()).collect();
         places.sort();
         let mut transitions: Vec<NodeId> = net
             .transitions()
-            .iter()
             .map(|transition| transition.id())
             .collect();
         transitions.sort();
         (places, transitions)
+    }
+}
+
+///
+/// This module provides a simple implementation of the [`SimulationTracer`] trait that reports
+/// all events using the [tracer](https://docs.rs/tracing/latest/tracing/) crate. All tracer
+/// calls are logged at `Level::TRACE`.
+///
+#[cfg(feature = "log-tracer")]
+pub mod log_tracer {
+    use crate::net::{Arc, Net, Place, Transition};
+    use crate::sim::{Marking, Simulation, Step, Tokens};
+    use crate::trace::SimulationTracer;
+    use crate::NodeId;
+    use std::marker::PhantomData;
+    use tracing::trace;
+
+    // --------------------------------------------------------------------------------------------
+    // Public Types
+    // --------------------------------------------------------------------------------------------
+
+    ///
+    /// This type implements the [`SimulationTracer`] trait to output `Level::TRACE` log events.
+    ///
+    #[derive(Debug, Default)]
+    pub struct LogTracer<P, T, A, N, C, M, S>
+    where
+        P: Place,
+        T: Transition,
+        A: Arc,
+        N: Net<Place = P, Transition = T, Arc = A>,
+        C: Tokens,
+        M: Marking<Tokens = C>,
+        S: Simulation<Place = P, Transition = T, Arc = A, Tokens = C, Marking = M>,
+    {
+        net: PhantomData<N>,
+        sim: PhantomData<S>,
+    }
+
+    // --------------------------------------------------------------------------------------------
+    // Implementations
+    // --------------------------------------------------------------------------------------------
+
+    impl<P, T, A, N, C, M, S> SimulationTracer for LogTracer<P, T, A, N, C, M, S>
+    where
+        P: Place,
+        T: Transition,
+        A: Arc,
+        N: Net<Place = P, Transition = T, Arc = A>,
+        C: Tokens,
+        M: Marking<Tokens = C>,
+        S: Simulation<Place = P, Transition = T, Arc = A, Tokens = C, Marking = M>,
+    {
+        type Place = P;
+        type Transition = T;
+        type Arc = A;
+        type Net = N;
+        type Tokens = C;
+        type Marking = M;
+        type Simulation = S;
+
+        fn started(&self, _: &Self::Simulation) {
+            trace!("simulation started");
+        }
+
+        fn step_started(&self, step: Step, _: &Self::Simulation) {
+            trace!(".. step {} started", step);
+        }
+
+        fn transition_started(&self, transition: NodeId, _: &Self::Simulation) {
+            trace!(".. .. transition {} started", transition);
+        }
+
+        fn place_updated(&self, place: NodeId, sim: &Self::Simulation) {
+            trace!(
+                ".. .. .. place {} updated to {}",
+                place,
+                sim.current_marking().marking(&place)
+            );
+        }
+
+        fn transition_enabled(&self, transition: NodeId, state: bool, _: &Self::Simulation) {
+            trace!(".. .. .. transition {} enabled => {}", transition, state);
+        }
+
+        fn fire(&self, transition: NodeId, _: &Self::Simulation) {
+            trace!(".. .. .. transition {} fired", transition);
+        }
+
+        fn transition_ended(&self, transition: NodeId, _: &Self::Simulation) {
+            trace!(".. .. transition {} ended", transition);
+        }
+
+        fn step_ended(&self, step: Step, _: &Self::Simulation) {
+            trace!(".. step {} ended", step);
+        }
+
+        fn ended(&self, _: &Self::Simulation) {
+            trace!("simulation ended");
+        }
     }
 }

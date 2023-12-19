@@ -1,16 +1,9 @@
 /*!
 This module provides the basic structural traits for a net.
 
+## Graphical Representation
 
-## Token Types (Color)
-
-In some cases it is desirable to be able to distinguish between *token types* or token *colors*. In this case the
-definition of a Colored Petri Net (CPN) adds the set of colors \\(C\\) to the tuple.
-
-$$\tag{Colored Petri Net} CPN = \left\langle P,T,A,C \right\rangle$$
-
-$$\tag{Colored Marking Function} M: P \mapsto C \times \mathbb{N}$$
-
+![Example Place/Transitions](https://raw.githubusercontent.com/johnstonskj/rust-ptnets/main/doc/ptnet-graph-core.svg)
 */
 
 use crate::{HasIdentity, HasLabel, NodeId};
@@ -53,7 +46,10 @@ pub trait Net: Debug {
     type Transition: Transition;
     type Arc: Arc;
 
-    fn places(&self) -> Vec<&Self::Place>;
+    fn places(&self) -> Box<dyn Iterator<Item = &Self::Place> + '_>;
+    fn is_place(&self, id: &NodeId) -> bool {
+        self.place(id).is_some()
+    }
     fn place(&self, id: &NodeId) -> Option<&Self::Place>;
     fn place_mut(&mut self, id: &NodeId) -> Option<&mut Self::Place>;
     fn add_place(&mut self) -> NodeId;
@@ -61,7 +57,10 @@ pub trait Net: Debug {
     where
         S: Into<String>;
 
-    fn transitions(&self) -> Vec<&Self::Transition>;
+    fn transitions(&self) -> Box<dyn Iterator<Item = &Self::Transition> + '_>;
+    fn is_transition(&self, id: &NodeId) -> bool {
+        self.transition(id).is_some()
+    }
     fn transition(&self, id: &NodeId) -> Option<&Self::Transition>;
     fn transition_mut(&mut self, id: &NodeId) -> Option<&mut Self::Transition>;
     fn add_transition(&mut self) -> NodeId;
@@ -69,11 +68,30 @@ pub trait Net: Debug {
     where
         S: Into<String>;
 
-    fn arcs(&self) -> Vec<&Self::Arc>;
+    fn arcs(&self) -> Box<dyn Iterator<Item = &Self::Arc> + '_>;
     fn add_arc(&mut self, source: NodeId, target: NodeId);
 
-    fn inputs(&self, id: &NodeId) -> Vec<&NodeId>;
-    fn outputs(&self, id: &NodeId) -> Vec<&NodeId>;
+    fn preset<'a>(&'a self, of_transition: &'a NodeId) -> Box<dyn Iterator<Item = NodeId> + '_> {
+        assert!(self.is_transition(of_transition));
+        Box::new(self.arcs().filter_map(|arc| {
+            if *of_transition == arc.target() {
+                Some(arc.source())
+            } else {
+                None
+            }
+        }))
+    }
+
+    fn postset<'a>(&'a self, of_transition: &'a NodeId) -> Box<dyn Iterator<Item = NodeId> + '_> {
+        assert!(self.is_transition(of_transition));
+        Box::new(self.arcs().filter_map(|arc| {
+            if *of_transition == arc.source() {
+                Some(arc.target())
+            } else {
+                None
+            }
+        }))
+    }
 }
 
 // ------------------------------------------------------------------------------------------------

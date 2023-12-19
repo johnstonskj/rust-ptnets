@@ -289,7 +289,8 @@ module.exports = grammar({
         _arc_type: $ => choice(
             $.normal_arc,
             $.inhibitor_arc,
-            $.reset_arc
+            $.reset_arc,
+            $.read_arc
         ),
 
         normal_arc: $ => token('->'),
@@ -297,6 +298,8 @@ module.exports = grammar({
         inhibitor_arc: $ => token('-inhibitor>'),
 
         reset_arc: $ => token('-reset>'),
+
+        read_arc: $ => token('-read-'),
 
         // -----------------------------------------------------------------------
         // Properties and Constraints

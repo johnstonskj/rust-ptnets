@@ -5,7 +5,8 @@ TBD
 
 */
 
-use crate::net::Transition;
+use crate::net::{Net, Transition};
+use crate::NodeId;
 use std::hash::Hash;
 
 // ------------------------------------------------------------------------------------------------
@@ -20,7 +21,7 @@ use std::hash::Hash;
 ///
 /// Note that the *initial* (default) value is considered the lowest priority.
 ///
-pub trait GuardedTransition: Transition {
+pub trait HasPriority: Transition {
     type Priority: Default + PartialEq + Eq + PartialOrd + Ord + Hash;
 
     ///
@@ -46,4 +47,11 @@ pub trait GuardedTransition: Transition {
     fn is_initial(&self) -> bool {
         self.priority() == &Self::Priority::default()
     }
+}
+
+pub trait HasPriorizedTransitions: Net {
+    type Priority: Default + PartialEq + Eq + PartialOrd + Ord + Hash;
+
+    fn add_prioritized_transition(&mut self, priority: Self::Priority) -> NodeId;
+    fn prioritized_transitions(&self) -> Box<dyn Iterator<Item = &Self::Transition> + '_>;
 }

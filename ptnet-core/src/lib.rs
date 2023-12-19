@@ -22,28 +22,28 @@ The sets of places \\(P\\) and transitions \\(T\\) are disjoint.
 
 $$ P \cap T = \emptyset$$
 
-Arcs are a directed connection between a place/transition pair. We will use the notation \\(\overset{a}{\leftarrow}\\)
-for the source end and \\(\overset{a}{\rightarrow}\\) for the target end of an arc \\(a\\).
+Arcs are a directed connection between a place/transition pair. We will use the notation \\(a_{src}\\)
+for the source end and \\(a_{tgt}\\) for the target end of an arc \\(a\\).
 
 $$\tag{Net Arc} A = \left(P \times T \right) \cup \left(T \times P \right)$$
 
 *Input arcs* connect a source place to a target transition.
 
-$$\tag{Input Arc} a_{in} = \left \\{ a \in A | \overset{a}{\rightarrow} \in T \right \\}$$
-$$ a_{in}(t) = \left \\{ a \in A | \overset{a}{\rightarrow} = t \right \\}$$
+$$\tag{Input Arcs} a_{in} = \left \\{ a \in A : a_{tgt} \in T \right \\}$$
+$$ a_{in}(t) = \left \\{ a \in A : a_{tgt} = t \right \\}$$
 
 The set of *input places* for a transition \\(t\\) is called its *preset* or \\({}^{\bullet}t\\).
 
-$$\tag{Preset} {}^{\bullet}t = \left \\{ p \in P | A(p,t) \right \\}$$
+$$\tag{Preset} {}^{\bullet}t = \left \\{ p \in P: A(p,t) \right \\}$$
 
 *Output arcs* connect a source transition to a target place.
 
-$$\tag{Output Arc} a_{out} = \left \\{ a \in A | \overset{a}{\leftarrow} \in T \right \\}$$
-$$ a_{out}(t) = \left \\{ a \in A | \overset{a}{\leftarrow} = t \right \\}$$
+$$\tag{Output Arcs} a_{out} = \left \\{ a \in A : a_{src} \in T \right \\}$$
+$$ a_{out}(t) = \left \\{ a \in A : a_{src} = t \right \\}$$
 
 The set of *output places* for a transition \\(t\\) is called its *postset* or \\(t^{\bullet}\\).
 
-$$\tag{Postset} t^{\bullet} = \left \\{ p \in P | A(t,p) \right \\}$$
+$$\tag{Postset} t^{\bullet} = \left \\{ p \in P : A(t,p) \right \\}$$
 
 Places can contain *tokens*; the current state of the modeled system (termed the *marking function* \\(M\\)) is given by the
 number of tokens in each place.
@@ -107,11 +107,11 @@ differences between various kinds of Petri Nets.
 
 Note that the table below uses \\(\mathbb{B}\\) to represent the set of boolean values \\(\left\\{ \bot,\top \right \\}\\).
 
-| Name              | Abbreviation | Token Type                   | Arc Weight | Place Capacities | Timed | Stochastic | Level |
-|-------------------|--------------|------------------------------|------------|------------------|-------|------------|-------|
-| Elementary net    | EN           | \\(M(p)\in \mathbb{B}\\)     | No         | No               | No    | No         |     1 |
-| Petri net         | PN           | \\(M(p)\in \mathbb{N^{+}}\\) | Yes        | No               | No    | No         |     2 |
-| Colored Petri net | CPN          | \\(M(p)\in C\\)              | Yes        | Yes              | No    | No         |     3 |
+| Name              | Abbreviation | Token Type                   | Arc Weight | Place Capacities | I/R Arcs | R-O Arcs | Guards | Timed | Stochastic | Level |
+|-------------------|--------------|------------------------------|------------|------------------|----------|----------|--------|-------|------------|-------|
+| Elementary net    | EN           | \\(\mathbb{B}\\)     | No         | No               | No       | No       | No     | No    | No         |     1 |
+| Petri net         | PN           | \\(\mathbb{N^{+}}\\) | Yes        | No               | No       | No       | No     | No    | No         |     2 |
+| Colored Petri net | CPN          | \\(C\\)              | Yes        | Yes              | No       | No       | No     | No    | No         |     3 |
 
 ## Restrictions
 
@@ -127,26 +127,26 @@ Restricting further, the following types of ordinary Petri nets are commonly use
 In a *state machine* (SM), every transition has one incoming arc, and one outgoing arc, and all markings have exactly
 one token. As a consequence, there can not be **concurrency**, but there can be **conflict** (i.e. nondeterminism).
 
-$$\tag{SM Restriction} \forall t\in T: |t^{\bullet}|=|{}^{\bullet} t|=1$$
+$$\tag{SM Restriction} \forall t\in T: \left| t^{\bullet}\right| = \left|{}^{\bullet}t \right| = 1$$
 
 In a *marked graph* (MG), every place has one incoming arc, and one outgoing arc. This means, that there can **not** be
 **conflict**, but there can be **concurrency**.
 
-$$\tag{MG Restriction} \forall p\in P: |p^{\bullet}|=|{}^{\bullet} p|=1$$
+$$\tag{MG Restriction} \forall p\in P: \left| p^{\bullet}\right| = \left|{}^{\bullet}p \right| = 1$$
 
 In a *free choice* net (FC), every arc from a place to a transition is either the only arc from that place or the only arc
 to that transition, i.e. there can be **both concurrency and conflict**, but **not at the same time**.
 
-$$\tag{FC Restriction} \forall p\in P: (|p^{\bullet}|\leq 1) \vee ({}^{\bullet} (p^{\bullet})=\\{p\\})$$
+$$\tag{FC Restriction} \forall p\in P: (\left|p^{\bullet}\right|\leq 1) \vee ({}^{\bullet} (p^{\bullet})=\\{p\\})$$
 
 A free choice net is an *S-system* iff its underlying net is an S-net.
 
-$$\tag{S-net} \forall t\in T: |{}^{\bullet}t| \le 1 \land |t^{\bullet}| \le 1$$
+$$\tag{S-net} \forall t\in T: \left| {}^{\bullet}t\right| \le 1 \land \left|t^{\bullet}\right| \le 1$$
 
 A free choice net is a *T-system* iff its underlying net is a T-net. In a T-System there is never any conflict because
 there are no (forward) branched places.
 
-$$\tag{T-net} \forall p\in P: | {}^{\bullet}p | \le 1 \land | p^{\bullet} | \le 1$$
+$$\tag{T-net} \forall p\in P: \left| {}^{\bullet}p \right| \le 1 \land \left| p^{\bullet} \right| \le 1$$
 
 *Extended free choice* (EFC) – a Petri net that can be **transformed into** an FC.
 
@@ -204,6 +204,9 @@ use std::{
 // Public Types  Common
 // ------------------------------------------------------------------------------------------------
 
+///
+/// This type is the inner representation of a [`NodeId`].
+///
 pub type NodeIdValue = u64;
 
 ///

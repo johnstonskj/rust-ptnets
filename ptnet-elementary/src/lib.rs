@@ -2,6 +2,14 @@
 This crate provides an implementation of the
 [`ptnet-core`](https://docs.rs/ptnet-core) traits for Elementary net (EN) systems.
 
+An Elementary net is a kind of place/transition net with the following characteristics.
+
+- The token type is the boolean type \\(\mathbb{B}\\).
+- Arcs do not have weights, or are modeled with fixed weights of 1.
+- Places do not have capacity constraints, or are modeled with infinite \\(\infty\\) capacity.
+- Transitions do not have duration values, or are modeled with a fixed duration of 0.
+- Transitions do not have guard expressions, or are modeled with a fixed guard returning true \\(\top\\).
+- No inhibitor, reset, or read-only arcs are allowed.
 
 # Example
 
@@ -105,16 +113,10 @@ use ptnet_core::net::{Arc, Net, NetBuilder, Place, PlaceBuilder, Transition, Tra
 use ptnet_core::sim::{Duration, Marking, Simulation, Step, Tokens};
 use ptnet_core::trace::{SimulationTracer, TraceableSimulation};
 use ptnet_core::{HasIdentity, HasLabel, NodeId, NodeIdValue};
-use rand::seq::SliceRandom;
-use rand::thread_rng;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Display};
 use std::rc::Rc;
-
-// ------------------------------------------------------------------------------------------------
-// Public Macros
-// ------------------------------------------------------------------------------------------------
 
 // ------------------------------------------------------------------------------------------------
 // Public Types  Net
@@ -185,6 +187,7 @@ pub struct ElementarySimulation {
     net: Rc<ElementaryNet>,
     marking: SimpleMarking,
     step: Step,
+    enabled: HashSet<NodeId>,
     tracer: Option<
         Rc<
             dyn SimulationTracer<
@@ -366,8 +369,8 @@ impl Net for ElementaryNet {
     type Transition = SimpleTransition;
     type Arc = SimpleArc;
 
-    fn places(&self) -> Vec<&Self::Place> {
-        self.places.values().collect()
+    fn places(&self) -> Box<dyn Iterator<Item = &Self::Place> + '_> {
+        Box::new(self.places.values())
     }
 
     fn place(&self, id: &NodeId) -> Option<&Self::Place> {
@@ -378,8 +381,8 @@ impl Net for ElementaryNet {
         self.places.get_mut(id)
     }
 
-    fn transitions(&self) -> Vec<&Self::Transition> {
-        self.transitions.values().collect()
+    fn transitions(&self) -> Box<dyn Iterator<Item = &Self::Transition> + '_> {
+        Box::new(self.transitions.values())
     }
 
     fn transition(&self, id: &NodeId) -> Option<&Self::Transition> {
@@ -390,34 +393,8 @@ impl Net for ElementaryNet {
         self.transitions.get_mut(id)
     }
 
-    fn arcs(&self) -> Vec<&Self::Arc> {
-        self.arcs.iter().collect()
-    }
-
-    fn inputs(&self, id: &NodeId) -> Vec<&NodeId> {
-        self.arcs
-            .iter()
-            .filter_map(|arc| {
-                if *id == arc.target {
-                    Some(&arc.source)
-                } else {
-                    None
-                }
-            })
-            .collect()
-    }
-
-    fn outputs(&self, id: &NodeId) -> Vec<&NodeId> {
-        self.arcs
-            .iter()
-            .filter_map(|arc| {
-                if *id == arc.source {
-                    Some(&arc.target)
-                } else {
-                    None
-                }
-            })
-            .collect()
+    fn arcs(&self) -> Box<dyn Iterator<Item = &Self::Arc> + '_> {
+        Box::new(self.arcs.iter())
     }
 
     fn add_place(&mut self) -> NodeId {
@@ -527,7 +504,6 @@ impl GraphvizNetFormatter {
             .join("\n");
         let arcs = net
             .arcs()
-            .iter()
             .map(|arc| self.arc_to_dot(arc, net))
             .collect::<Vec<String>>()
             .join("\n");
@@ -667,7 +643,6 @@ impl From<&ElementaryNet> for SimpleMarking {
             step: Step::ZERO,
             markings: net
                 .places()
-                .iter()
                 .map(|place| (place.id(), Default::default()))
                 .collect(),
         }
@@ -747,14 +722,18 @@ impl Simulation for ElementarySimulation {
     }
 
     fn steps(&mut self, steps: Duration) -> Result<(), Error> {
-        if let (Some(tracer), Step::ZERO) = (&self.tracer, self.step) {
-            tracer.started(self);
+        if self.step == Step::ZERO {
+            let enabled: Vec<NodeId> = self.enabled.iter().cloned().collect();
+            for transition in &enabled {
+                self.update_enabled(transition).unwrap();
+            }
+            if let Some(tracer) = &self.tracer {
+                tracer.started(self);
+            }
         }
         for _ in 0..*steps.as_ref() {
-            // 1. Get a list of all enabled transitions
-            let mut enabled = self.enabled();
-
-            if enabled.is_empty() {
+            // 1. Are we there yet?
+            if self.enabled.is_empty() {
                 if let Some(tracer) = &self.tracer {
                     tracer.ended(self);
                 }
@@ -765,10 +744,10 @@ impl Simulation for ElementarySimulation {
                     tracer.step_started(this_step, self);
                 }
                 // 2. Shuffle the list, ensure the order of firing is non-deterministic.
-                enabled.shuffle(&mut thread_rng());
+                self.enabled = HashSet::from_iter(self.enabled.drain());
 
                 // 3. Fire all enabled transitions.
-                for transition in enabled {
+                for transition in self.enabled.iter().cloned().collect::<Vec<_>>() {
                     if let Some(tracer) = &self.tracer {
                         tracer.transition_started(transition, self);
                     }
@@ -789,36 +768,16 @@ impl Simulation for ElementarySimulation {
         Ok(())
     }
 
-    fn enabled(&self) -> Vec<NodeId> {
-        self.net
-            .transitions()
-            .iter()
-            .filter_map(|transition| {
-                if self.is_enabled(transition) {
-                    Some(transition.id())
-                } else {
-                    None
-                }
-            })
-            .collect()
+    fn enabled(&self) -> Box<dyn Iterator<Item = &NodeId> + '_> {
+        Box::new(self.enabled.iter())
     }
 
-    fn is_enabled(&self, transition: &Self::Transition) -> bool {
-        let marked_places = self.marking.marked();
-        self.net
-            .inputs(&transition.id())
-            .iter()
-            .all(|input| marked_places.contains(input))
+    fn is_enabled(&self, transition: &NodeId) -> bool {
+        self.enabled.contains(transition)
     }
 
     fn is_complete(&self) -> Option<bool> {
-        Some(
-            !self
-                .net
-                .transitions()
-                .iter()
-                .any(|transition| self.is_enabled(transition)),
-        )
+        Some(self.enabled.is_empty())
     }
 }
 
@@ -845,22 +804,86 @@ impl TraceableSimulation for ElementarySimulation {
 
 impl ElementarySimulation {
     pub fn new(net: Rc<ElementaryNet>, initial: SimpleMarking) -> Self {
-        Self {
+        let mut new_self = Self {
             net,
             marking: initial,
+            enabled: Default::default(),
             step: Step::ZERO,
             tracer: None,
+        };
+        let transitions: Vec<NodeId> = new_self.net.transitions().map(|t| t.id()).collect();
+        for transition in &transitions {
+            new_self.update_enabled(transition).unwrap();
         }
+        new_self
     }
 
     fn fire(&mut self, transition: NodeId) -> Result<(), Error> {
         // 1. Take tokens from inputs
-        for place_id in self.net.inputs(&transition) {
-            self.marking.reset(*place_id);
+        let places: Vec<NodeId> = self.net.preset(&transition).collect();
+        for place_id in places {
+            // assert place has tokens (still)
+            self.marking.reset(place_id);
+            self.update_enabled_from(place_id, &transition)?;
+            if let Some(tracer) = &self.tracer {
+                tracer.place_updated(place_id, self);
+            }
         }
-        // 2. Give tokens to outputs
-        for place_id in self.net.outputs(&transition) {
-            self.marking.mark(*place_id, Dot::from(true));
+        // 2. Fire the transition
+        if let Some(tracer) = &self.tracer {
+            tracer.fire(transition, self);
+        }
+        self.enabled.remove(&transition);
+        // 3. Give tokens to outputs
+        let places: Vec<NodeId> = self.net.postset(&transition).collect();
+        for place_id in places {
+            self.marking.mark(place_id, Dot::from(true));
+            // if changed...
+            self.update_enabled_from(place_id, &transition)?;
+            if let Some(tracer) = &self.tracer {
+                tracer.place_updated(place_id, self);
+            }
+        }
+        Ok(())
+    }
+
+    fn update_enabled_from(&mut self, place: NodeId, exclude: &NodeId) -> Result<(), Error> {
+        let others: Vec<NodeId> = self
+            .net
+            .arcs
+            .iter()
+            .filter_map(|a| {
+                if a.source() == place && a.target() != *exclude {
+                    Some(a.target())
+                } else {
+                    None
+                }
+            })
+            .collect();
+        for other in others {
+            self.update_enabled(&other)?;
+        }
+
+        Ok(())
+    }
+
+    fn update_enabled(&mut self, transition: &NodeId) -> Result<(), Error> {
+        if self
+            .net
+            .preset(transition)
+            .all(|place| !self.marking.marking(&place).is_empty())
+        {
+            if !self.enabled.contains(transition) {
+                self.enabled.insert(*transition);
+                if let Some(tracer) = &self.tracer {
+                    tracer.transition_enabled(*transition, true, self);
+                }
+            }
+        } else if self.enabled.contains(transition) {
+            let _ = self.enabled.remove(transition);
+            if let Some(tracer) = &self.tracer {
+                tracer.transition_enabled(*transition, false, self);
+            }
         }
         Ok(())
     }

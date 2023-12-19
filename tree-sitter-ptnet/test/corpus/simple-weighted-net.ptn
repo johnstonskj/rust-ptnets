@@ -20,7 +20,7 @@ net example {
   arc t0 -> p1
 
   initial marking {
-    p0 = true
+    p0 = 1
   }
 }
 

@@ -9,10 +9,15 @@ net*. Different types of transitions can be distinguished depending on their ass
 transitions* (no delay), *exponential transitions* (delay is an exponential distribution), and *deterministic
 transitions* (delay is fixed).
 
+- Deterministic or interval: Timed PN (TPN)
+- Random durations : Stochastic PN (SPN)
+
 */
 
-use crate::net::Transition;
-use crate::sim::{Duration, IMMEDIATE};
+use crate::net::{Net, Transition};
+use crate::sim::{Duration, TimeValue};
+use crate::NodeId;
+use std::ops::Range;
 
 // ------------------------------------------------------------------------------------------------
 // Public Types
@@ -23,28 +28,48 @@ use crate::sim::{Duration, IMMEDIATE};
 /// fires the duration is retrieved and while any source tokens are immediately consumed, tokens
 /// are not transferred to the targets until the duration expires.
 ///
-pub trait TimedTransition: Transition {
+pub trait HasDuration: Transition {
     ///
     /// Return the duration this transition takes to complete firing.
     ///
     fn duration(&self) -> Duration;
+
+    ///
+    /// Create a transition that fires immediately.
+    ///
+    fn instantaneous() -> Self;
+
+    ///
+    /// Create a transition that fires after the fixed `duration`.
+    ///
+    fn fixed(duration: Duration) -> Self;
+
+    ///
+    /// Create a transition that fires after a duration randomly chosen in the range `duration`.
+    ///
+    fn interval(duration: Range<TimeValue>) -> Self;
 }
 
 ///
-/// This trait is an explicit version of the standard notion of an un-timed transition. It will
-/// always return a duration of zero.
+/// This trait extends nets to include timed transitions. When this transition fires.
 ///
-pub trait ImmediateTransition: TimedTransition {
-    fn duration(&self) -> Duration {
-        IMMEDIATE
-    }
-}
+trait HasTimedTransitions: Net {
+    type TimedTransition: HasDuration;
 
-///
-/// The duration for this transition is calculated as a random value between the lower and upper
-/// bounds (inclusive).
-///
-pub trait RandomBoundedTransition: TimedTransition {
-    fn lower_bound(&self) -> Option<Duration>;
-    fn upper_bound(&self) -> Option<Duration>;
+    ///
+    /// Create a transition that fires immediately.
+    ///
+    fn add_instantaneous_transition(&mut self) -> NodeId;
+
+    ///
+    /// Create a transition that fires after the fixed `duration`.
+    ///
+    fn add_fixed_duration_transition(&mut self, duration: Duration) -> NodeId;
+
+    ///
+    /// Create a transition that fires after a duration randomly chosen in the range `duration`.
+    ///
+    fn add_interval_transition(&mut self, duration: Range<TimeValue>) -> NodeId;
+
+    fn timed_transitions(&self) -> Box<dyn Iterator<Item = &Self::Transition> + '_>;
 }

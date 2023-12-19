@@ -23,7 +23,8 @@
 <!-- p1&#45;&gt;t1 -->
 <g id="edge1" class="edge">
 <title>p1&#45;&gt;t1</title>
-<path fill="none" stroke="black" d="M49.77,-34.5C80.26,-34.5 141.73,-34.5 155.72,-34.5"/>
+<path fill="none" stroke="black" d="M49.77,-34.5C75.85,-34.5 124.61,-34.5 146.92,-34.5"/>
+<ellipse fill="black" stroke="black" cx="151.22" cy="-34.5" rx="4" ry="4"/>
 <text text-anchor="start" x="76.5" y="-38.7" font-family="Times,serif" font-style="italic" font-size="14.00">read&#45;only</text>
 </g>
 <!-- p2 -->
