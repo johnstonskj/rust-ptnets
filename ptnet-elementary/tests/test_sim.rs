@@ -1,11 +1,12 @@
 use ptnet_core::{
+    fmt::print_net,
     net::{Net, NetBuilder, PlaceBuilder, TransitionBuilder},
     sim::{Marking, Simulation},
-    trace::{MatrixTracer, TraceableSimulation}, fmt::print_net,
+    trace::{MatrixTracer, TraceableSimulation},
 };
 use ptnet_elementary::{
-    Dot, ElementaryNet, ElementaryNetBuilder, ElementarySimulation, SimpleArc, SimpleMarking,
-    SimplePlace, SimpleTransition, GraphvizNetFormatter,
+    Dot, ElementaryNet, ElementaryNetBuilder, ElementarySimulation, GraphvizNetFormatter,
+    SimpleArc, SimpleMarking, SimplePlace, SimpleTransition,
 };
 
 #[test]

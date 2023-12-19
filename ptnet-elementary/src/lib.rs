@@ -114,11 +114,11 @@ use ptnet_core::sim::{Duration, Marking, Simulation, Step, Tokens};
 use ptnet_core::trace::{SimulationTracer, TraceableSimulation};
 use ptnet_core::{HasIdentity, HasLabel, NodeId, NodeIdValue};
 use rand::seq::SliceRandom;
+use rand::thread_rng;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Display};
 use std::rc::Rc;
-use rand::thread_rng;
 
 // ------------------------------------------------------------------------------------------------
 // Public Types  Net
@@ -827,7 +827,9 @@ impl ElementarySimulation {
     }
 
     fn is_enabled_check(&self, transition: &NodeId) -> bool {
-        self.net.preset(&transition).all(|place| !self.marking.marking(&place).is_empty())
+        self.net
+            .preset(transition)
+            .all(|place| !self.marking.marking(&place).is_empty())
     }
 
     ///
@@ -878,7 +880,7 @@ impl ElementarySimulation {
         let others: Vec<NodeId> = self
             .net
             .output_arcs(&place)
-            .map(|a|a.target())
+            .map(|a| a.target())
             .filter(|id| id != exclude)
             .collect();
 
