@@ -2,8 +2,8 @@
 This module provides an extension to include read-only arcs.
 
 Read-only, or simply read, arcs extend the semantics of a net by allowing a transition that is
-enabled by the presence of tokens at an input place without consuming them.Nets supporting
-read-only arcs are referred to as a /contextual net/.
+enabled by the presence of tokens at an input place without consuming them. Nets supporting
+read-only arcs are referred to as a *contextual net*.
 
 # Graphical representation
 

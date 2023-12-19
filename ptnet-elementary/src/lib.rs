@@ -113,10 +113,12 @@ use ptnet_core::net::{Arc, Net, NetBuilder, Place, PlaceBuilder, Transition, Tra
 use ptnet_core::sim::{Duration, Marking, Simulation, Step, Tokens};
 use ptnet_core::trace::{SimulationTracer, TraceableSimulation};
 use ptnet_core::{HasIdentity, HasLabel, NodeId, NodeIdValue};
+use rand::seq::SliceRandom;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Display};
 use std::rc::Rc;
+use rand::thread_rng;
 
 // ------------------------------------------------------------------------------------------------
 // Public Types  Net
@@ -723,10 +725,6 @@ impl Simulation for ElementarySimulation {
 
     fn steps(&mut self, steps: Duration) -> Result<(), Error> {
         if self.step == Step::ZERO {
-            let enabled: Vec<NodeId> = self.enabled.iter().cloned().collect();
-            for transition in &enabled {
-                self.update_enabled(transition).unwrap();
-            }
             if let Some(tracer) = &self.tracer {
                 tracer.started(self);
             }
@@ -744,17 +742,22 @@ impl Simulation for ElementarySimulation {
                 if let Some(tracer) = &self.tracer {
                     tracer.step_started(this_step, self);
                 }
+
                 // 3. Shuffle the list, ensure the order of firing is non-deterministic.
-                self.enabled = HashSet::from_iter(self.enabled.drain());
+                let mut enabled = self.enabled.iter().cloned().collect::<Vec<_>>();
+                enabled.shuffle(&mut thread_rng());
 
                 // 4. Fire all enabled transitions.
-                for transition in self.enabled.iter().cloned().collect::<Vec<_>>() {
-                    if let Some(tracer) = &self.tracer {
-                        tracer.transition_started(transition, self);
-                    }
-                    self.fire(transition)?;
-                    if let Some(tracer) = &self.tracer {
-                        tracer.transition_ended(transition, self);
+                for transition in enabled {
+                    // Note that fire() can add and remove from the underlying enabled set.
+                    if self.is_enabled_check(&transition) {
+                        if let Some(tracer) = &self.tracer {
+                            tracer.transition_started(transition, self);
+                        }
+                        self.fire(transition)?;
+                        if let Some(tracer) = &self.tracer {
+                            tracer.transition_ended(transition, self);
+                        }
                     }
                 }
                 // 5. Update state
@@ -823,6 +826,10 @@ impl ElementarySimulation {
         new_self
     }
 
+    fn is_enabled_check(&self, transition: &NodeId) -> bool {
+        self.net.preset(&transition).all(|place| !self.marking.marking(&place).is_empty())
+    }
+
     ///
     /// Fire the specified transition. This has to first remove any tokens from the transition's
     /// preset, and check for any existing enabled transition that's now disabled due to lack of
@@ -840,12 +847,15 @@ impl ElementarySimulation {
                 tracer.place_updated(place_id, self);
             }
         }
+
         // 2. Fire the transition
         if let Some(tracer) = &self.tracer {
             tracer.fire(transition, self);
         }
+
         // 3. Disable this transition now it has fired.
         self.enabled.remove(&transition);
+
         // 4. Give tokens to outputs
         let places: Vec<NodeId> = self.net.postset(&transition).collect();
         for place_id in places {
@@ -856,6 +866,7 @@ impl ElementarySimulation {
                 tracer.place_updated(place_id, self);
             }
         }
+
         Ok(())
     }
 
@@ -866,19 +877,15 @@ impl ElementarySimulation {
     fn update_enabled_from(&mut self, place: NodeId, exclude: &NodeId) -> Result<(), Error> {
         let others: Vec<NodeId> = self
             .net
-            .arcs
-            .iter()
-            .filter_map(|a| {
-                if a.source() == place && a.target() != *exclude {
-                    Some(a.target())
-                } else {
-                    None
-                }
-            })
+            .output_arcs(&place)
+            .map(|a|a.target())
+            .filter(|id| id != exclude)
             .collect();
+
         for other in others {
             self.update_enabled(&other)?;
         }
+
         Ok(())
     }
 
@@ -886,11 +893,7 @@ impl ElementarySimulation {
     /// Determine if transition is enabled or not.
     ///
     fn update_enabled(&mut self, transition: &NodeId) -> Result<(), Error> {
-        if self
-            .net
-            .preset(transition)
-            .all(|place| !self.marking.marking(&place).is_empty())
-        {
+        if self.is_enabled_check(transition) {
             // This transition is enabled,
             if !self.enabled.contains(transition) {
                 // and it was previously disabled so update it

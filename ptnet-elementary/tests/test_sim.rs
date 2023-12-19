@@ -1,11 +1,11 @@
 use ptnet_core::{
     net::{Net, NetBuilder, PlaceBuilder, TransitionBuilder},
     sim::{Marking, Simulation},
-    trace::{MatrixTracer, TraceableSimulation}, fmt::{NetMatrixFormatter, print_net},
+    trace::{MatrixTracer, TraceableSimulation}, fmt::print_net,
 };
 use ptnet_elementary::{
     Dot, ElementaryNet, ElementaryNetBuilder, ElementarySimulation, SimpleArc, SimpleMarking,
-    SimplePlace, SimpleTransition,
+    SimplePlace, SimpleTransition, GraphvizNetFormatter,
 };
 
 #[test]
@@ -21,14 +21,12 @@ fn test_simulate_simple_net() {
     net.add_arc(p1, t1);
     net.add_arc(t1, p2);
 
-    let mut f = NetMatrixFormatter::default();
+    let mut f = GraphvizNetFormatter;
     print_net(&net, &mut f).unwrap();
 
-    println!("-----\nMaking marking");
     let mut im = SimpleMarking::from(&net);
     im.mark(p0, Dot::from(true));
 
-    println!("-----\nMaking tracer");
     let tracer: MatrixTracer<
         SimplePlace,
         SimpleTransition,
@@ -39,11 +37,100 @@ fn test_simulate_simple_net() {
         ElementarySimulation,
     > = MatrixTracer::default();
 
-    println!("-----\nMaking simulation");
     let mut sim = ElementarySimulation::new(net.into(), im.clone());
     sim.add_tracer(tracer.into());
 
-    println!("-----\nStarting simulation");
+    while !sim.is_complete().unwrap_or_default() {
+        sim.step().unwrap();
+    }
+}
+
+#[test]
+fn test_simulate_choice_net() {
+    let mut net = ElementaryNet::default();
+    let p0 = net.add_place();
+    let p1 = net.add_place();
+    let p2 = net.add_place();
+    let p3 = net.add_place();
+    let p4 = net.add_place();
+    let t0 = net.add_transition();
+    let t1 = net.add_transition();
+    let t2 = net.add_transition();
+    let t3 = net.add_transition();
+
+    net.add_arc(p0, t0);
+    net.add_arc(p0, t1);
+    net.add_arc(t0, p1);
+    net.add_arc(t1, p2);
+
+    net.add_arc(p1, t2);
+    net.add_arc(t2, p3);
+    net.add_arc(p2, t3);
+    net.add_arc(t3, p4);
+
+    let mut f = GraphvizNetFormatter;
+    print_net(&net, &mut f).unwrap();
+
+    let mut im = SimpleMarking::from(&net);
+    im.mark(p0, Dot::from(true));
+
+    let tracer: MatrixTracer<
+        SimplePlace,
+        SimpleTransition,
+        SimpleArc,
+        ElementaryNet,
+        Dot,
+        SimpleMarking,
+        ElementarySimulation,
+    > = MatrixTracer::default();
+
+    let mut sim = ElementarySimulation::new(net.into(), im.clone());
+    sim.add_tracer(tracer.into());
+
+    while !sim.is_complete().unwrap_or_default() {
+        sim.step().unwrap();
+    }
+}
+
+#[test]
+fn test_simulate_parallel_net() {
+    let mut net = ElementaryNet::default();
+    let p0 = net.add_place();
+    let p1 = net.add_place();
+    let p2 = net.add_place();
+    let p3 = net.add_place();
+    let p4 = net.add_place();
+    let t0 = net.add_transition();
+    let t1 = net.add_transition();
+    let t2 = net.add_transition();
+
+    net.add_arc(p0, t0);
+    net.add_arc(t0, p1);
+    net.add_arc(t0, p2);
+    net.add_arc(p1, t1);
+    net.add_arc(t1, p3);
+    net.add_arc(p2, t2);
+    net.add_arc(t2, p4);
+
+    let mut f = GraphvizNetFormatter;
+    print_net(&net, &mut f).unwrap();
+
+    let mut im = SimpleMarking::from(&net);
+    im.mark(p0, Dot::from(true));
+
+    let tracer: MatrixTracer<
+        SimplePlace,
+        SimpleTransition,
+        SimpleArc,
+        ElementaryNet,
+        Dot,
+        SimpleMarking,
+        ElementarySimulation,
+    > = MatrixTracer::default();
+
+    let mut sim = ElementarySimulation::new(net.into(), im.clone());
+    sim.add_tracer(tracer.into());
+
     while !sim.is_complete().unwrap_or_default() {
         sim.step().unwrap();
     }

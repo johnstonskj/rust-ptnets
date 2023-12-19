@@ -39,58 +39,160 @@ pub trait Arc: Debug {
 
 ///
 /// This is the core trait for a Net \\(N\\) comprising a set of places \\(P\\), a set of transitions
-/// \\(T\\), and a set of arcs \\(A\\) such that \\(N=\left\langle P,T,A  \right\rangle\\)
+/// \\(T\\), and a set of arcs \\(A\\) such that \\(N=\left\langle P,T,A  \right\rangle\\). This trait
+/// can be combined with a marking \\(M\\) over \\(N\\) and executed in a Simulation.
 ///
 pub trait Net: Debug {
+    /// The concrete type of places in this net.
     type Place: Place;
+    /// The concrete type of transitions in this net.
     type Transition: Transition;
+    /// The concrete type of arcs in this net.
     type Arc: Arc;
 
-    fn places(&self) -> Box<dyn Iterator<Item = &Self::Place> + '_>;
+    // --------------------------------------------------------------------------------------------
+    // Places
+    // --------------------------------------------------------------------------------------------
+
+    ///
+    /// Return an iterator over all the places in the net.
+    ///
+     fn places(&self) -> Box<dyn Iterator<Item = &Self::Place> + '_>;
+
+    ///
+    /// Return `true` if the `id` identifies a place, else `false`.
+    ///
     fn is_place(&self, id: &NodeId) -> bool {
+        // Override this method if you have a more efficient mechanism.
         self.place(id).is_some()
     }
+
+    ///
+    /// Return the place identified by `id` if it exists, else `None`.
+    ///
     fn place(&self, id: &NodeId) -> Option<&Self::Place>;
+
+    ///
+    /// Return a mutable reference to the place identified by `id` if it exists, else `None`.
+    ///
     fn place_mut(&mut self, id: &NodeId) -> Option<&mut Self::Place>;
+
+    ///
+    /// Add a new place to the net, returning the new place's identifier.
+    ///
     fn add_place(&mut self) -> NodeId;
+
+    ///
+    /// Add a new place to the net with the provided `label`, returning the new place's identifier.
+    ///
     fn add_labeled_place<S>(&mut self, label: S) -> NodeId
     where
         S: Into<String>;
 
+    ///
+    /// Returns an iterator over all arcs that connect `of_place` to its *input* transitions.
+    ///
+    fn input_arcs<'a>(&'a self, of_place: &'a NodeId) -> Box<dyn Iterator<Item = &Self::Arc> + '_> {
+        assert!(self.is_place(of_place));
+        Box::new(self.arcs().filter(|arc| *of_place == arc.target()))
+    }
+
+    ///
+    /// Returns an iterator over all arcs that connect `of_place` to its *output* transitions.
+    ///
+    fn output_arcs<'a>(&'a self, of_place: &'a NodeId) -> Box<dyn Iterator<Item = &Self::Arc> + '_> {
+        assert!(self.is_place(of_place));
+        Box::new(self.arcs().filter(|arc| *of_place == arc.source()))
+    }
+
+    // --------------------------------------------------------------------------------------------
+    // Transitions
+    // --------------------------------------------------------------------------------------------
+
+    ///
+    /// Return an iterator over all the transitions in the net.
+    ///
     fn transitions(&self) -> Box<dyn Iterator<Item = &Self::Transition> + '_>;
+
+    ///
+    /// Return `true` if the `id` identifies a transition, else `false`.
+    ///
     fn is_transition(&self, id: &NodeId) -> bool {
+        // Override this method if you have a more efficient mechanism.
         self.transition(id).is_some()
     }
+
+    ///
+    /// Return the transition identified by `id` if it exists, else `None`.
+    ///
     fn transition(&self, id: &NodeId) -> Option<&Self::Transition>;
+
+    ///
+    /// Return a mutable reference to the transition identified by `id` if it exists, else `None`.
+    ///
     fn transition_mut(&mut self, id: &NodeId) -> Option<&mut Self::Transition>;
+
+    ///
+    /// Add a new transition to the net, returning the new place's identifier.
+    ///
     fn add_transition(&mut self) -> NodeId;
+
+    ///
+    /// Add a new transition to the net with the provided `label`, returning the new place's identifier.
+    ///
     fn add_labeled_transition<S>(&mut self, label: S) -> NodeId
     where
         S: Into<String>;
 
-    fn arcs(&self) -> Box<dyn Iterator<Item = &Self::Arc> + '_>;
-    fn add_arc(&mut self, source: NodeId, target: NodeId);
-
-    fn preset<'a>(&'a self, of_transition: &'a NodeId) -> Box<dyn Iterator<Item = NodeId> + '_> {
+    ///
+    /// Returns an iterator over all arcs that connect `of_transition` to its *preset* places.
+    ///
+    fn preset_arcs<'a>(&'a self, of_transition: &'a NodeId) -> Box<dyn Iterator<Item = &Self::Arc> + '_> {
         assert!(self.is_transition(of_transition));
-        Box::new(self.arcs().filter_map(|arc| {
-            if *of_transition == arc.target() {
-                Some(arc.source())
-            } else {
-                None
-            }
-        }))
+        Box::new(self.arcs().filter(|arc| *of_transition == arc.target()))
     }
 
-    fn postset<'a>(&'a self, of_transition: &'a NodeId) -> Box<dyn Iterator<Item = NodeId> + '_> {
+    ///
+    /// Returns an iterator over the preset identifiers of `of_transition`.
+    ///
+    fn preset<'a>(&'a self, of_transition: &'a NodeId) -> Box<dyn Iterator<Item = NodeId> + '_> {
+        Box::new(self.preset_arcs(of_transition).map(|arc| arc.source()))
+    }
+
+    ///
+    /// Returns an iterator over all arcs that connect `of_transition` to its *postset* places.
+    ///
+    fn postset_arcs<'a>(&'a self, of_transition: &'a NodeId) -> Box<dyn Iterator<Item = &Self::Arc> + '_> {
         assert!(self.is_transition(of_transition));
-        Box::new(self.arcs().filter_map(|arc| {
-            if *of_transition == arc.source() {
-                Some(arc.target())
-            } else {
-                None
-            }
-        }))
+        Box::new(self.arcs().filter(|arc| *of_transition == arc.source()))
+    }
+
+    ///
+    /// Returns an iterator over the postset identifiers of `of_transition`.
+    ///
+    fn postset<'a>(&'a self, of_transition: &'a NodeId) -> Box<dyn Iterator<Item = NodeId> + '_> {
+        Box::new(self.postset_arcs(of_transition).map(|arc| arc.target()))
+    }
+
+    // --------------------------------------------------------------------------------------------
+    // Arcs
+    // --------------------------------------------------------------------------------------------
+
+    ///
+    /// Return an iterator over all the arcs in the net.
+    ///
+    fn arcs(&self) -> Box<dyn Iterator<Item = &Self::Arc> + '_>;
+
+    ///
+    /// Add a new arc between `source` and `target`.
+    ///
+    fn add_arc(&mut self, source: NodeId, target: NodeId);
+
+    ///
+    /// Returns `true` if there is an arc directly between `source` and `target`, else `false`.
+    ///
+    fn has_arc(&self, source: NodeId, target: NodeId) -> bool {
+        self.arcs().any(|arc| arc.source() == source && arc.target() == target)
     }
 }
 
