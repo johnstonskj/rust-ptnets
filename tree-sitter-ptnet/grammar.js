@@ -299,7 +299,7 @@ module.exports = grammar({
 
         reset_arc: $ => token('-reset>'),
 
-        read_arc: $ => token('-read-'),
+        read_arc: $ => token('-read>'),
 
         // -----------------------------------------------------------------------
         // Properties and Constraints

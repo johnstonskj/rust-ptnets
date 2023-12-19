@@ -193,6 +193,12 @@ blockquote > p:last-child {
     margin-bottom: 0;
 }
 
+/* Math: MathJax */
+
+p > mjx-container:only-child {
+    max-width: 680px;
+}
+
 /* Hierarchy Lists */
 
 div.HIERARCHY {

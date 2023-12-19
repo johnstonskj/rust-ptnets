@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2023-12-18 Mon 09:35 -->
+<!-- 2023-12-19 Tue 15:50 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Notes on Petri Nets</title>
@@ -38,32 +38,100 @@ MathJax = {
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#orgd09c5dc">1. PTNet Modules</a>
+<li><a href="#org5cb50cd">1. Place/Transition Nets</a>
 <ul>
-<li><a href="#org928e88b">1.1. Common Types</a></li>
-<li><a href="#org40a90b0">1.2. Net Core Module</a></li>
-<li><a href="#org301696b">1.3. Sim Core Module</a></li>
-<li><a href="#org7dd16b3">1.4. Guarded Extension Module</a></li>
-<li><a href="#org1fa650a">1.5. Inhibited Extension Module</a></li>
-<li><a href="#org14b5223">1.6. Read-Only Arc Extension Module</a></li>
-<li><a href="#org0721305">1.7. Timed Extension Module</a></li>
-<li><a href="#org6e12edf">1.8. Weighted Extension Module</a></li>
+<li><a href="#orga5e1513">1.1. Core Place/Transition Net</a>
+<ul>
+<li><a href="#org7e693a3">1.1.1. Meta Model</a></li>
+<li><a href="#orgc04963f">1.1.2. Textual Notation</a></li>
+<li><a href="#org4065079">1.1.3. Graphical Notation</a></li>
 </ul>
 </li>
-<li><a href="#org10e1b40">2. Elementary Nets</a></li>
-<li><a href="#org9e07049">3. Appendix: PTNet Language</a>
+<li><a href="#org0191eb1">1.2. Core Token Game</a>
 <ul>
-<li><a href="#org5003896">3.1. PTNet Grammar</a></li>
+<li><a href="#orga898763">1.2.1. Meta Model</a></li>
+<li><a href="#org8d35334">1.2.2. Textual Notation</a></li>
+<li><a href="#org466265e">1.2.3. Graphical Notation</a></li>
+<li><a href="#orge843d9b">1.2.4. Patterns</a></li>
 </ul>
 </li>
-<li><a href="#org5e48a1b">4. Appendix: GraphViz</a>
+<li><a href="#org86fc56e">1.3. Guarded Transitions Extension</a>
 <ul>
-<li><a href="#org0ff6175">4.1. Net</a></li>
-<li><a href="#org4ba8833">4.2. Place</a></li>
-<li><a href="#org23ba4c9">4.3. Transition</a></li>
-<li><a href="#orgb0a1b02">4.4. Arc</a></li>
-<li><a href="#org89044fe">4.5. Sub-net</a></li>
-<li><a href="#orgf2117dd">4.6. Colors</a></li>
+<li><a href="#orga90ab64">1.3.1. Meta Model</a></li>
+<li><a href="#orgf883b07">1.3.2. Textual Notation</a></li>
+<li><a href="#org3716432">1.3.3. Graphical Notation</a></li>
+</ul>
+</li>
+<li><a href="#orgf47d63b">1.4. Inhibited Transitions Extension</a>
+<ul>
+<li><a href="#org29dc81e">1.4.1. Meta Model</a></li>
+<li><a href="#org6684ca6">1.4.2. Textual Notation</a></li>
+<li><a href="#org0aaca0b">1.4.3. Graphical Notation</a></li>
+</ul>
+</li>
+<li><a href="#orgf3d74a5">1.5. Prioritized Transitions Extension</a>
+<ul>
+<li><a href="#org054b223">1.5.1. Meta Model</a></li>
+<li><a href="#org16a191d">1.5.2. Textual Notation</a></li>
+<li><a href="#orga06cd0e">1.5.3. Graphical Notation</a></li>
+</ul>
+</li>
+<li><a href="#org2345915">1.6. Contextualized Arcs Extension</a>
+<ul>
+<li><a href="#orgd98d595">1.6.1. Meta Model</a></li>
+<li><a href="#orgfe3f335">1.6.2. Textual Notation</a></li>
+<li><a href="#org9eefe68">1.6.3. Graphical Notation</a></li>
+</ul>
+</li>
+<li><a href="#orgbb15b91">1.7. Structured Nets Extension</a>
+<ul>
+<li><a href="#org34cc761">1.7.1. Meta Model</a></li>
+<li><a href="#org716fb4f">1.7.2. Textual Notation</a></li>
+<li><a href="#org4791d38">1.7.3. Graphical Notation</a></li>
+</ul>
+</li>
+<li><a href="#org44c3d6a">1.8. Timed Transitions Extension</a>
+<ul>
+<li><a href="#orgcdd7efb">1.8.1. Meta Model</a></li>
+<li><a href="#org744e2b3">1.8.2. Textual Notation</a></li>
+<li><a href="#org621f149">1.8.3. Graphical Notation</a></li>
+</ul>
+</li>
+<li><a href="#org44b7a1f">1.9. Cardinality Extension</a>
+<ul>
+<li><a href="#org4543f3f">1.9.1. Meta Model</a></li>
+<li><a href="#orgcd31517">1.9.2. Arc Cardinality</a></li>
+<li><a href="#org0b43069">1.9.3. Place Cardinality</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#org5d84357">2. Classification</a>
+<ul>
+<li><a href="#org695435d">2.1. Extensions</a></li>
+<li><a href="#org6244bbc">2.2. Restrictions</a></li>
+<li><a href="#orgff866ca">2.3. Elementary Nets</a></li>
+</ul>
+</li>
+<li><a href="#org0c6e175">3. Appendix: Meta Model</a>
+<ul>
+<li><a href="#orgd64f9d5">3.1. Structure</a></li>
+<li><a href="#org7b07149">3.2. Common Types</a></li>
+</ul>
+</li>
+<li><a href="#orgdf7a1b5">4. Appendix: PTNet Language</a>
+<ul>
+<li><a href="#orgd159d91">4.1. PTNet Grammar</a></li>
+</ul>
+</li>
+<li><a href="#orgbcc5632">5. Appendix: GraphViz</a>
+<ul>
+<li><a href="#org20f3d20">5.1. Net</a></li>
+<li><a href="#orgde8f3f4">5.2. Place</a></li>
+<li><a href="#org3194fbd">5.3. Transition</a></li>
+<li><a href="#orgac323f5">5.4. Arc</a></li>
+<li><a href="#org16e238d">5.5. Sub-net</a></li>
+<li><a href="#org9ff7b48">5.6. Colors</a></li>
 </ul>
 </li>
 </ul>
@@ -83,32 +151,13 @@ nets to simulate the dynamic and concurrent activities of systems. As a mathemat
 state equations, algebraic equations, and other mathematical models governing the behavior of systems.
 </p>
 
-<div id="outline-container-orgd09c5dc" class="outline-2">
-<h2 id="orgd09c5dc"><span class="section-number-2">1.</span> PTNet Modules</h2>
+<div id="outline-container-org5cb50cd" class="outline-2">
+<h2 id="org5cb50cd"><span class="section-number-2">1.</span> Place/Transition Nets</h2>
 <div class="outline-text-2" id="text-1">
-
-<div id="org8b2cfeb" class="figure">
-<p><img src="ptnet-model-packages.svg" alt="ptnet-model-packages.svg" class="org-svg" />
-</p>
-<p><span class="figure-number">Figure 1: </span>Core Modules</p>
 </div>
-</div>
-
-<div id="outline-container-org928e88b" class="outline-3">
-<h3 id="org928e88b"><span class="section-number-3">1.1.</span> Common Types</h3>
+<div id="outline-container-orga5e1513" class="outline-3">
+<h3 id="orga5e1513"><span class="section-number-3">1.1.</span> Core Place/Transition Net</h3>
 <div class="outline-text-3" id="text-1-1">
-
-<div id="orgda8fc07" class="figure">
-<p><img src="ptnet-model-core.svg" alt="ptnet-model-core.svg" class="org-svg" />
-</p>
-<p><span class="figure-number">Figure 2: </span>Common Types and Interfaces</p>
-</div>
-</div>
-</div>
-
-<div id="outline-container-org40a90b0" class="outline-3">
-<h3 id="org40a90b0"><span class="section-number-3">1.2.</span> Net Core Module</h3>
-<div class="outline-text-3" id="text-1-2">
 <p>
 A Net \(N\) consists of a tuple of <b>places</b> (the set \(P\)), <b>transitions</b> (the set \(T\)), and <b>arcs</b> (the set
 \(A\)) that connect them. Note that arcs are historically known as <b>flow relations</b> and the set is named \(F\).
@@ -140,7 +189,7 @@ for the source end and \(a_{tgt}\) for the target end of an arc \(a\).
 </p>
 
 <p>
-\[\tag{Input Arc} a_{in} = \left\{ a \in A \mid a_{tgt} \in T \right\}\]
+\[\tag{Input Arcs} a_{in} = \left\{ a \in A \mid a_{tgt} \in T \right\}\]
 \[ a_{in}(t) = \left \{ a \in A \mid a_{tgt} = t \right \}\]
 </p>
 
@@ -157,8 +206,8 @@ The set of <b>input places</b> for a transition \(t\) is called its <b>preset</b
 </p>
 
 <p>
-\[\tag{Output Arc} a_{out} = \left\{ a \in A \mid a{_src} \in T \right\}\]
-\[ a_{out}(t) = \left\{ a \in A \mid a{_src} = t \right\}\]
+\[\tag{Output Arcs} a_{out} = \left\{ a \in A \mid a_{src} \in T \right\}\]
+\[ a_{out}(t) = \left\{ a \in A \mid a_{src} = t \right\}\]
 </p>
 
 <p>
@@ -168,42 +217,56 @@ The set of <b>output places</b> for a transition \(t\) is called its <b>postset<
 <p>
 \[\tag{Postset} t^{\bullet} = \left\{ p \in P \mid A(t,p) \right\}\]
 </p>
-
-
-<div id="org64aa083" class="figure">
-<p><img src="ptnet-model-net.svg" alt="ptnet-model-net.svg" class="org-svg" />
-</p>
-<p><span class="figure-number">Figure 3: </span>Core Net Module</p>
 </div>
 
-<p>
-<b>Textual Notation</b>
-</p>
+<div id="outline-container-org7e693a3" class="outline-4">
+<h4 id="org7e693a3"><span class="section-number-4">1.1.1.</span> Meta Model</h4>
+<div class="outline-text-4" id="text-1-1-1">
 
-<pre class="example" id="orgd1fff13">
+<div id="org253675d" class="figure">
+<p><img src="ptnet-model-net.svg" alt="ptnet-model-net.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 1: </span>Core Net Module</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgc04963f" class="outline-4">
+<h4 id="orgc04963f"><span class="section-number-4">1.1.2.</span> Textual Notation</h4>
+<div class="outline-text-4" id="text-1-1-2">
+<pre class="example" id="org9f39f1c">
 net net0 {
   place p1, p2
   transition t1
   arc p1 -&gt; t1 -&gt; p2   
 }
 </pre>
+</div>
+</div>
 
-<p>
-<b>Graphical Notation</b>
-</p>
+<div id="outline-container-org4065079" class="outline-4">
+<h4 id="org4065079"><span class="section-number-4">1.1.3.</span> Graphical Notation</h4>
+<div class="outline-text-4" id="text-1-1-3">
 
-
-<div id="orgaff7403" class="figure">
+<div id="orgce2e3fb" class="figure">
 <p><img src="ptnet-graph-core.svg" alt="ptnet-graph-core.svg" class="org-svg" />
 </p>
-<p><span class="figure-number">Figure 4: </span>Core Net</p>
+<p><span class="figure-number">Figure 2: </span>Core Net</p>
+</div>
+
+<dl class="org-dl">
+<dt>Places</dt><dd>These are drawn as a circle without any fill color with their label outside the shape.</dd>
+<dt>Transitions</dt><dd>These are drawn as filled rectangles with their label outside the shape. It is often the case that a
+transition is shown as a solid block of color, our representation will always have a border/fill combination for legibility.</dd>
+<dt>Arcs</dt><dd>These are drawn as directed arrows from source to target with a filled triangular arrow head.</dd>
+</dl>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org301696b" class="outline-3">
-<h3 id="org301696b"><span class="section-number-3">1.3.</span> Sim Core Module</h3>
-<div class="outline-text-3" id="text-1-3">
+<div id="outline-container-org0191eb1" class="outline-3">
+<h3 id="org0191eb1"><span class="section-number-3">1.2.</span> Core Token Game</h3>
+<div class="outline-text-3" id="text-1-2">
 <p>
 Places can contain <b>tokens</b>; the current state of the modeled system (termed the <b>marking function</b> \(M\)) is given by the
 number of tokens in each place.
@@ -219,7 +282,7 @@ with a particular marking \(M\).
 </p>
 
 <p>
-\[\tag{Marked Net} N = \left\langle P,T,A,M \right\rangle\]
+\[\tag{Marked Net} N_M = \left\langle P,T,A,M \right\rangle\]
 </p>
 
 <p>
@@ -239,7 +302,7 @@ A net \(N\) is therefore enabled <b>iff</b> any transition in \(N\) is enabled.
 </p>
 
 <p>
-\[enabled\left(N\right) \iff \exists t \in T: enabled\left(t\right)\]
+\[enabled\left(N_M\right) \iff \exists t \in T: enabled\left(t\right)\]
 </p>
 
 <p>
@@ -252,18 +315,31 @@ The firing of transitions in the marking \(M_n\) results in the new marking \(M_
 transitions in subsequent markings is called the <b><b>token game</b></b>.
 </p>
 
-
-<div id="org3e1c1ba" class="figure">
-<p><img src="ptnet-model-sim.svg" alt="ptnet-model-sim.svg" class="org-svg" />
+<p>
+A particular game is complete, or <i>terminated</i> if there are no more transitions enabled.
 </p>
-<p><span class="figure-number">Figure 5: </span>Sim Core Module</p>
-</div>
 
 <p>
-<b>Textual Notation</b>
+\[\tag{Termination} terminated\left(N_M\right) = \forall t \in T: \neg enabled\left(t\right)\]
 </p>
+</div>
 
-<pre class="example" id="org829ac50">
+<div id="outline-container-orga898763" class="outline-4">
+<h4 id="orga898763"><span class="section-number-4">1.2.1.</span> Meta Model</h4>
+<div class="outline-text-4" id="text-1-2-1">
+
+<div id="org684e384" class="figure">
+<p><img src="ptnet-model-game.svg" alt="ptnet-model-game.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 3: </span>Core Game Module</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org8d35334" class="outline-4">
+<h4 id="org8d35334"><span class="section-number-4">1.2.2.</span> Textual Notation</h4>
+<div class="outline-text-4" id="text-1-2-2">
+<pre class="example" id="orgd5fee5b">
 net net0 {
   place p1, p2, p3
   transition t1, t2
@@ -274,63 +350,303 @@ net net0 {
   } 
 }
 </pre>
+</div>
+</div>
 
-<p>
-<b>Graphical Notation</b>
-</p>
+<div id="outline-container-org466265e" class="outline-4">
+<h4 id="org466265e"><span class="section-number-4">1.2.3.</span> Graphical Notation</h4>
+<div class="outline-text-4" id="text-1-2-3">
 
-
-<div id="orgfca5996" class="figure">
+<div id="orgea3a7e0" class="figure">
 <p><img src="ptnet-graph-sim.svg" alt="ptnet-graph-sim.svg" class="org-svg" />
 </p>
-<p><span class="figure-number">Figure 6: </span>Basic Petri Net Components</p>
+<p><span class="figure-number">Figure 4: </span>Basic Petri Net Components</p>
+</div>
+
+<dl class="org-dl">
+<dt>Marked Places</dt><dd>Markings are drawn within the place shape, the exact format is dependent on the token type.
+<ul class="org-ul">
+<li>For boolean tokens &#x2026;</li>
+<li>For numeric tokens &#x2026;</li>
+</ul></dd>
+<dt>Unmarked Places</dt><dd>Places are drawn empty, they <i>may</i> use a muted color for their boundary.</dd>
+<dt>Enabled Transitions</dt><dd>Shown with a dark green boundary and a light green fill to stand out.</dd>
+<dt>Disabled Transitions</dt><dd>These <i>may</i> be drawn with muted boundary and fill colors.</dd>
+</dl>
+</div>
+</div>
+<div id="outline-container-orge843d9b" class="outline-4">
+<h4 id="orge843d9b"><span class="section-number-4">1.2.4.</span> Patterns</h4>
+<div class="outline-text-4" id="text-1-2-4">
+<p>
+Certain patterns of places and transitions appear commonly in nets, and correspond to operations in concurrent systems
+and are therefore useful to enumerate here.
+</p>
+
+<p>
+The first of these is <b>choice</b>, or <b>conflict</b> where a place may be in the preset of multiple transitions. In this case, only
+one transition may fire and the game must choose which <i>branch</i> to take in a random manner. 
+</p>
+
+<p>
+\[\tag{Choice} \left| \left\{ t \in T : p \in {}^{\bullet}t \right\} \right| > 1\]
+</p>
+
+<p>
+In the following example the place <code>p1</code> may cause the transition <code>t1</code> or <code>t2</code> to fire but we don&rsquo;t know which.
+</p>
+
+<pre class="example" id="orgf331cc4">
+net choice {
+  place p1, p2, p3
+  transition t1, t2
+  arc p1 -&gt; t1
+  arc p1 -&gt; t2
+  arc t1 -&gt; p2
+  arc t2 -&gt; p3
+}
+</pre>
+
+
+<div id="orgbf2bfe5" class="figure">
+<p><img src="ptnet-pattern-choice.svg" alt="ptnet-pattern-choice.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 5: </span>Pattern Choice/Conflict</p>
+</div>
+
+<p>
+The second pattern to consider is the <b>fork</b>, where a transition has more than one place in its postset such that each
+will receive a token when it fires. This allows each <i>branch</i> of the fork to run concurrently.
+</p>
+
+<p>
+\[\tag{Fork} \left( \left| {}^{\bullet}t \right| = 1 \right) \land \left( \left| t^{\bullet} \right| > 1 \right)\]
+</p>
+
+<p>
+In the following example when <code>t1</code> fires the places <code>p2</code> and <code>p3</code> represent separate threads of execution.
+</p>
+
+<pre class="example" id="org7940a1b">
+net fork {
+  place p1, p2, p3
+  transition t1
+  arc p1 -&gt; t1
+  arc t1 -&gt; p2
+  arc t1 -&gt; p3
+}
+</pre>
+
+
+<div id="org1bf1c52" class="figure">
+<p><img src="ptnet-pattern-fork.svg" alt="ptnet-pattern-fork.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 6: </span>Pattern Fork</p>
+</div>
+
+<p>
+A join brings together two or more <i>branches</i> at a single transition. Typically this implies that the join has only one
+place in its postset.
+</p>
+
+<p>
+\[\tag{Join} \left( \left| {}^{\bullet}t \right| > 1 \right) \land \left( \left| t^{\bullet} \right| = 1 \right)\]
+</p>
+
+<p>
+In the following example <code>t1</code> is only enabled when tokens are present at both <code>p1</code> and <code>p2</code>.
+</p>
+
+<pre class="example" id="org3901c67">
+net join {
+  place p1, p2, p3
+  transition t1
+  arc p1 -&gt; t1
+  arc t1 -&gt; p2
+  arc t1 -&gt; p3
+}
+</pre>
+
+
+<div id="org3eb915f" class="figure">
+<p><img src="ptnet-pattern-join.svg" alt="ptnet-pattern-join.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 7: </span>Pattern Join</p>
+</div>
+
+<p>
+A <b>rendezvous</b> is a point at which a transition acts as both a join and a fork, allowing synchronization between two
+concurrent processes.
+</p>
+
+<p>
+\[\tag{Rendezvous} \left( \left| {}^{\bullet}t \right| > 1 \right) \land \left( \left| {}^{\bullet}t \right| = \left| t^{\bullet}
+\right| \right)\]
+</p>
+
+<p>
+In the following example, which has an \(x\) thread and a \(y\) thread, the transition <code>xyt1</code> will only be enabled
+when both threads are able to contribute tokens and it can be seen that the \(y\) thread will take longer to arrive than
+the \(x\) thread. Once the two threads are synchronized they carry on from <code>xyt1</code> concurrently.
+</p>
+
+<pre class="example" id="org22b8621">
+net rendezvous {
+  place x1, x2, x3
+  place y1, y2, y3, y4
+  transition xt1, xyt1, yt1, yt2
+  arc x1 -&gt; xt1 -&gt; x2
+  arc y1 -&gt; yt1 -&gt; y2 -&gt; yt2 -&gt; y3
+  arc (x2, y3) -&gt; xyt1 -&gt; (x3, y4)
+}
+</pre>
+
+
+<div id="org755e03b" class="figure">
+<p><img src="ptnet-pattern-rendezvous.svg" alt="ptnet-pattern-rendezvous.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 8: </span>Pattern Rendezvous</p>
+</div>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org7dd16b3" class="outline-3">
-<h3 id="org7dd16b3"><span class="section-number-3">1.4.</span> Guarded Extension Module</h3>
-<div class="outline-text-3" id="text-1-4">
+<div id="outline-container-org86fc56e" class="outline-3">
+<h3 id="org86fc56e"><span class="section-number-3">1.3.</span> Guarded Transitions Extension</h3>
+<div class="outline-text-3" id="text-1-3">
+<p>
+In some cases it is desirable to model conditions that will enable/disable a transition beyond the required set of input
+tokens. To accomplish this we add a guard function \(G\) to our net definition.
+</p>
 
-<div id="orgb5250e0" class="figure">
+<p>
+\[\tag{Guarded Net} N_G = \left\langle P,T,A,G \right\rangle\]
+</p>
+
+<p>
+This function maps the set of transitions and a <b>particular marking</b> to a truth value.
+</p>
+
+<p>
+\[\tag{Guard Function} G: T \times M_n \mapsto \mathbb{B}\]
+</p>
+
+<p>
+This function is called from within the existing enable check as follows.
+</p>
+
+<p>
+\[\tag{Guarded enabled} enabled\left(t \in T, M_n \right) = \forall p \in {}^{\bullet}t: min(A(p,t)) \land G(t, M_n)\]
+</p>
+</div>
+
+<div id="outline-container-orga90ab64" class="outline-4">
+<h4 id="orga90ab64"><span class="section-number-4">1.3.1.</span> Meta Model</h4>
+<div class="outline-text-4" id="text-1-3-1">
+
+<div id="org1c975fb" class="figure">
 <p><img src="ptnet-model-guarded.svg" alt="ptnet-model-guarded.svg" class="org-svg" />
 </p>
-<p><span class="figure-number">Figure 7: </span>Guarded Transitions Module</p>
+<p><span class="figure-number">Figure 9: </span>Guarded Transitions Module</p>
+</div>
+</div>
 </div>
 
-<p>
-<b>Textual Notation</b>
-</p>
-
-<p>
-TBD
-</p>
-
-<p>
-<b>Graphical Notation</b>
-</p>
-
+<div id="outline-container-orgf883b07" class="outline-4">
+<h4 id="orgf883b07"><span class="section-number-4">1.3.2.</span> Textual Notation</h4>
+<div class="outline-text-4" id="text-1-3-2">
 <p>
 TBD
 </p>
 </div>
 </div>
 
-<div id="outline-container-org1fa650a" class="outline-3">
-<h3 id="org1fa650a"><span class="section-number-3">1.5.</span> Inhibited Extension Module</h3>
-<div class="outline-text-3" id="text-1-5">
+<div id="outline-container-org3716432" class="outline-4">
+<h4 id="org3716432"><span class="section-number-4">1.3.3.</span> Graphical Notation</h4>
+<div class="outline-text-4" id="text-1-3-3">
+<p>
+TBD
+</p>
+</div>
+</div>
+</div>
 
-<div id="org8d0f00a" class="figure">
+<div id="outline-container-orgf47d63b" class="outline-3">
+<h3 id="orgf47d63b"><span class="section-number-3">1.4.</span> Inhibited Transitions Extension</h3>
+<div class="outline-text-3" id="text-1-4">
+<p>
+An <b>inhibitor arc</b> imposes the precondition that the transition may only fire when the place is empty; this allows
+arbitrary computations on numbers of tokens to be expressed, which makes the formalism Turing complete and implies
+existence of a universal net. The set of inhibitor arcs are noted as \(A_{\circ}\) inhibitor arcs .
+</p>
+
+<p>
+A <b>reset arc</b> does not impose a precondition on firing, and empties the place when the transition fires; this makes
+reachability undecidable, while some other properties, such as termination, remain decidable. The set of reset
+arcs are noted as \(A_{\blacktriangleright}\).
+</p>
+
+<p>
+For both inhibitor and reset arcs the source must be a place, and the target must be a transition.
+</p>
+
+<p>
+\[\forall a \in A_{\circ} \cup A_{\blacktriangleright}: a \in (P \times T)\]
+</p>
+
+<p>
+We now define a set, \\(A^{+}\\), which is the union of standard arcs, inhibitor arcs, and reset arcs.
+</p>
+
+<p>
+\[\tag{Arc Types} A^{+} = A \cup A_{\circ} \cup A_{\blacktriangleright}\]
+</p>
+
+<p>
+A net that includes such arcs is now defined to include this extended set of arcs.
+</p>
+
+<p>
+\[\tag{Inhibited Net} N = \left\langle P,T,A^{+} \right\rangle\]
+</p>
+
+<p>
+Neither inhibitor or reset arcs may have weights.
+</p>
+
+<p>
+An inhibitor arc must connect from a place to a transition.
+</p>
+
+<p>
+\[\tag{Inhibitor} i \in \left(P \times T \right) \land W(i) = \emptyset\]
+</p>
+
+<p>
+A reset arc must connect from a transition to place.
+</p>
+
+<p>
+\[\tag{Inhibitor} r \in \left(T \times P \right) \land W(r) = \emptyset\]
+</p>
+</div>
+
+<div id="outline-container-org29dc81e" class="outline-4">
+<h4 id="org29dc81e"><span class="section-number-4">1.4.1.</span> Meta Model</h4>
+<div class="outline-text-4" id="text-1-4-1">
+
+<div id="orgef93c00" class="figure">
 <p><img src="ptnet-model-inhibited.svg" alt="ptnet-model-inhibited.svg" class="org-svg" />
 </p>
-<p><span class="figure-number">Figure 8: </span>Inhibited and Reset Arcs Module</p>
+<p><span class="figure-number">Figure 10: </span>Inhibited and Reset Arcs Module</p>
+</div>
+</div>
 </div>
 
-<p>
-<b>Textual Notation</b>
-</p>
-
-<pre class="example" id="org2746722">
+<div id="outline-container-org6684ca6" class="outline-4">
+<h4 id="org6684ca6"><span class="section-number-4">1.4.2.</span> Textual Notation</h4>
+<div class="outline-text-4" id="text-1-4-2">
+<pre class="example" id="org9e15b68">
 net net0 {
   place p1, p2
   transition t1
@@ -338,106 +654,342 @@ net net0 {
   arc t1 -reset&gt; p2   
 }
 </pre>
+</div>
+</div>
 
-<p>
-<b>Graphical Notation</b>
-</p>
+<div id="outline-container-org0aaca0b" class="outline-4">
+<h4 id="org0aaca0b"><span class="section-number-4">1.4.3.</span> Graphical Notation</h4>
+<div class="outline-text-4" id="text-1-4-3">
 
-
-<div id="org7bc6a05" class="figure">
+<div id="org19f22b6" class="figure">
 <p><img src="ptnet-graph-inhibited.svg" alt="ptnet-graph-inhibited.svg" class="org-svg" />
 </p>
-<p><span class="figure-number">Figure 9: </span>Inhibited and Reset Arcs</p>
+<p><span class="figure-number">Figure 11: </span>Inhibited and Reset Arcs</p>
+</div>
+
+<dl class="org-dl">
+<dt>Inhibitor Arc</dt><dd>An inhibitor arc is drawn as a line from the source place to target transition but with an arrow head
+which is an open circle.</dd>
+<dt>Reset Arc</dt><dd>A reset arc is drawn as a line from the source place to target transition but with an arrow head which is
+two small filled trangles.</dd>
+</dl>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org14b5223" class="outline-3">
-<h3 id="org14b5223"><span class="section-number-3">1.6.</span> Read-Only Arc Extension Module</h3>
-<div class="outline-text-3" id="text-1-6">
-
-<div id="org7d0a5fc" class="figure">
-<p><img src="ptnet-model-readonly.svg" alt="ptnet-model-readonly.svg" class="org-svg" />
+<div id="outline-container-orgf3d74a5" class="outline-3">
+<h3 id="orgf3d74a5"><span class="section-number-3">1.5.</span> Prioritized Transitions Extension</h3>
+<div class="outline-text-3" id="text-1-5">
+<p>
+TBD
 </p>
-<p><span class="figure-number">Figure 10: </span>Read-Only Arcs Extension Module</p>
-</div>
 
 <p>
-<b>Textual Notation</b>
+Given a priority function \(\pi\) that maps transitions to priority values in $\mathbb{N},.
 </p>
 
-<pre class="example" id="org8699454">
+<p>
+\[\tag{Priority Function} \pi: T ↦ \mathbb{N}\]
+</p>
+
+<p>
+we can define a prioritized net as a net \(N\) with the addition of the function \(\pi\).
+</p>
+
+<p>
+\[\tag{Prioritized Net} N_\pi = \left\langle P,T,A,\pi \right\rangle\]
+</p>
+</div>
+
+<div id="outline-container-org054b223" class="outline-4">
+<h4 id="org054b223"><span class="section-number-4">1.5.1.</span> Meta Model</h4>
+<div class="outline-text-4" id="text-1-5-1">
+
+<div id="orgeb96e6c" class="figure">
+<p><img src="ptnet-model-prioritized.svg" alt="ptnet-model-prioritized.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 12: </span>Prioritized Transitions Extension Module</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org16a191d" class="outline-4">
+<h4 id="org16a191d"><span class="section-number-4">1.5.2.</span> Textual Notation</h4>
+<div class="outline-text-4" id="text-1-5-2">
+<p>
+TBD
+</p>
+</div>
+</div>
+
+<div id="outline-container-orga06cd0e" class="outline-4">
+<h4 id="orga06cd0e"><span class="section-number-4">1.5.3.</span> Graphical Notation</h4>
+<div class="outline-text-4" id="text-1-5-3">
+<p>
+TBD
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org2345915" class="outline-3">
+<h3 id="org2345915"><span class="section-number-3">1.6.</span> Contextualized Arcs Extension</h3>
+<div class="outline-text-3" id="text-1-6">
+<p>
+Read-only, or simply read, arcs extend the semantics of a net by allowing a transition that is
+enabled by the presence of tokens at an input place without consuming them. Nets supporting
+read-only arcs are referred to as a <i>contextual net</i>.
+</p>
+
+<p>
+Read-only arcs <i>may</i> have associated weights.
+</p>
+</div>
+
+<div id="outline-container-orgd98d595" class="outline-4">
+<h4 id="orgd98d595"><span class="section-number-4">1.6.1.</span> Meta Model</h4>
+<div class="outline-text-4" id="text-1-6-1">
+
+<div id="orgd6d2be4" class="figure">
+<p><img src="ptnet-model-readonly.svg" alt="ptnet-model-readonly.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 13: </span>Contextualized Arcs Extension Module</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgfe3f335" class="outline-4">
+<h4 id="orgfe3f335"><span class="section-number-4">1.6.2.</span> Textual Notation</h4>
+<div class="outline-text-4" id="text-1-6-2">
+<pre class="example" id="orgf96214d">
 net net0 {
   place p1, p2
   transition t1
-  arc p1 -read- t1
-  arc t1 -&gt; p2   
+  arc p1 -read&gt; t1 -&gt; p2   
 }
 </pre>
+</div>
+</div>
 
+<div id="outline-container-org9eefe68" class="outline-4">
+<h4 id="org9eefe68"><span class="section-number-4">1.6.3.</span> Graphical Notation</h4>
+<div class="outline-text-4" id="text-1-6-3">
 <p>
-<b>Graphical Notation</b>
+A read-only arc is drawn as a line from the source place to target transition but with an arrow head which is a filled circle.
 </p>
 
 
-<div id="orgf20aa41" class="figure">
+<div id="orgd91786c" class="figure">
 <p><img src="ptnet-graph-readonly.svg" alt="ptnet-graph-readonly.svg" class="org-svg" />
 </p>
-<p><span class="figure-number">Figure 11: </span>Read-only Arcs Extension</p>
+<p><span class="figure-number">Figure 14: </span>Read-only Arcs Extension</p>
+</div>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org0721305" class="outline-3">
-<h3 id="org0721305"><span class="section-number-3">1.7.</span> Timed Extension Module</h3>
+<div id="outline-container-orgbb15b91" class="outline-3">
+<h3 id="orgbb15b91"><span class="section-number-3">1.7.</span> Structured Nets Extension</h3>
 <div class="outline-text-3" id="text-1-7">
+<p>
+TBD
+</p>
+</div>
 
-<div id="orgb009962" class="figure">
+<div id="outline-container-org34cc761" class="outline-4">
+<h4 id="org34cc761"><span class="section-number-4">1.7.1.</span> Meta Model</h4>
+<div class="outline-text-4" id="text-1-7-1">
+<p>
+TBD
+</p>
+</div>
+</div>
+
+<div id="outline-container-org716fb4f" class="outline-4">
+<h4 id="org716fb4f"><span class="section-number-4">1.7.2.</span> Textual Notation</h4>
+<div class="outline-text-4" id="text-1-7-2">
+<p>
+TBD
+</p>
+</div>
+</div>
+
+<div id="outline-container-org4791d38" class="outline-4">
+<h4 id="org4791d38"><span class="section-number-4">1.7.3.</span> Graphical Notation</h4>
+<div class="outline-text-4" id="text-1-7-3">
+<p>
+TBD
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org44c3d6a" class="outline-3">
+<h3 id="org44c3d6a"><span class="section-number-3">1.8.</span> Timed Transitions Extension</h3>
+<div class="outline-text-3" id="text-1-8">
+<p>
+To study performance and dependability issues of systems it is necessary to include a timing concept into the model.
+There are several possibilities to do this for a Petri net; however, the most common way is to associate a <b>firing
+delay</b> with each transition. This delay specifies the time that the transition has to be <b>enabled</b>, before it can
+actually fire. If the delay is a random distribution function, the resulting net class is called a <b>stochastic Petri
+net</b>. Different types of transitions can be distinguished depending on their associated delay, for instance <b>immediate
+transitions</b> (no delay), <b>exponential transitions</b> (delay is an exponential distribution), and <b>deterministic
+transitions</b> (delay is fixed).
+</p>
+
+<p>
+\[\tag{Timed Net} N_D = \left\langle P,T,A,D \right\rangle\]
+</p>
+
+<p>
+Timing/Duration function \(D\).
+</p>
+
+<p>
+\[\tag{Timing Function} D: T ↦ \mathbb{N}\]
+</p>
+
+<ul class="org-ul">
+<li>Deterministic or interval: Timed PN (TPN)</li>
+<li>Random durations : Stochastic PN (SPN)</li>
+</ul>
+
+<p>
+This also impacts the <i>termination condition</i> for a net in that it may not be possible to enable a particular transition
+not because there are tokens present in its preset but because it is busy completing a previous firing.
+</p>
+
+<p>
+\[\tag{Termination} terminated\left(N_D\right) = \forall t \in T: \neg enabled\left(t\right) \land \neg busy\left(t\right)\]
+</p>
+</div>
+
+<div id="outline-container-orgcdd7efb" class="outline-4">
+<h4 id="orgcdd7efb"><span class="section-number-4">1.8.1.</span> Meta Model</h4>
+<div class="outline-text-4" id="text-1-8-1">
+
+<div id="orgc48a583" class="figure">
 <p><img src="ptnet-model-timed.svg" alt="ptnet-model-timed.svg" class="org-svg" />
 </p>
-<p><span class="figure-number">Figure 12: </span>Timed Transitions Extension Module</p>
+<p><span class="figure-number">Figure 15: </span>Timed Transitions Extension Module</p>
 </div>
-
-<p>
-<b>Textual Notation</b>
-</p>
-
-<p>
-TBD
-</p>
-
-<p>
-<b>Graphical Notation</b>
-</p>
-
-<p>
-TBD
-</p>
 </div>
 </div>
 
-<div id="outline-container-org6e12edf" class="outline-3">
-<h3 id="org6e12edf"><span class="section-number-3">1.8.</span> Weighted Extension Module</h3>
-<div class="outline-text-3" id="text-1-8">
+<div id="outline-container-org744e2b3" class="outline-4">
+<h4 id="org744e2b3"><span class="section-number-4">1.8.2.</span> Textual Notation</h4>
+<div class="outline-text-4" id="text-1-8-2">
+<pre class="example" id="orge35bf61">
+net net0 {
+  place p1, p2, p3, p4
+  transition t1 {
+    duration = !
+  }
+  transition t2 {
+    duration = 2
+  }
+  transition t3 {
+    duration = [1, 4]
+  }
+  arc p1 -&gt; t1 -&gt; p2 -&gt; t2 -&gt; p3 -&gt; t3 -&gt; p4
+}
+</pre>
+</div>
+</div>
 
-<div id="orgefd654e" class="figure">
+<div id="outline-container-org621f149" class="outline-4">
+<h4 id="org621f149"><span class="section-number-4">1.8.3.</span> Graphical Notation</h4>
+<div class="outline-text-4" id="text-1-8-3">
+
+<div id="org7432ff6" class="figure">
+<p><img src="ptnet-graph-timed.svg" alt="ptnet-graph-timed.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 16: </span>Timed Transitions</p>
+</div>
+
+<dl class="org-dl">
+<dt>Immediate</dt><dd>Rather than the usual filled rectangle an immediate transition is drawn as a narrow bar instead.</dd>
+<dt>Fixed</dt><dd>The usual shape is drawn, but the label includes the character &ldquo;π&rdquo; followed by the duration. This is usually
+separated from the initial label content with a colon &ldquo;:&rdquo;.</dd>
+<dt>Interval</dt><dd>The usual shape is drawn, but the label includes the character &ldquo;π&rdquo; followed by the duration interval
+converted to the closed form \([n,m]\). This is usually separated from the initial label content with a colon &ldquo;:&rdquo;.</dd>
+</dl>
+
+<p>
+Because there will now be steps in the token game where a particular transition is still in the process of firing (doing
+work) it is useful to visually distinguish these in the visual representation of net. In the example below we draw an
+in-progress transition with a dashed border as well as a different color. The duration component of the label is also
+updated to show that one of two steps have been completed.
+</p>
+
+
+<div id="orgeece928" class="figure">
+<p><img src="ptnet-graph-timed-running.svg" alt="ptnet-graph-timed-running.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 17: </span>Timed Transition Execution</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org44b7a1f" class="outline-3">
+<h3 id="org44b7a1f"><span class="section-number-3">1.9.</span> Cardinality Extension</h3>
+<div class="outline-text-3" id="text-1-9">
+</div>
+<div id="outline-container-org4543f3f" class="outline-4">
+<h4 id="org4543f3f"><span class="section-number-4">1.9.1.</span> Meta Model</h4>
+<div class="outline-text-4" id="text-1-9-1">
+
+<div id="org0399a92" class="figure">
 <p><img src="ptnet-model-weighted.svg" alt="ptnet-model-weighted.svg" class="org-svg" />
 </p>
-<p><span class="figure-number">Figure 13: </span>Weighted Arcs Extension Module</p>
+<p><span class="figure-number">Figure 18: </span>Cardinality Extension Module</p>
+</div>
+</div>
 </div>
 
+<div id="outline-container-orgcd31517" class="outline-4">
+<h4 id="orgcd31517"><span class="section-number-4">1.9.2.</span> Arc Cardinality</h4>
+<div class="outline-text-4" id="text-1-9-2">
 <p>
-<b>Textual Notation</b>
+Arcs may have an associated <i>weight</i>, sometimes termed its <i>cardinality</i> or <i>multiplicity</i>, that denotes the number of tokens that are carried on that arc. The Net tuple is
+therefore extended with a <b>weight function</b> \(W\). A Net without explicit arc weights is behaviorally the same as a
+Net where all arc weights are set to \(1\). Where a Net does support arc weights any unspecified weight assumes the default
+value of \(1\).
 </p>
 
-<pre class="example" id="org904bdc7">
+<p>
+\[\tag{Weighted Net} N_W = \left\langle P,T,A,W \right\rangle\]
+</p>
+
+<p>
+This function in general maps the set of arcs to positive natural numbers &#x2013; an arc weight of \(0\) would make no sense.
+</p>
+
+<p>
+\[\tag{Weight Function} W: A \mapsto \mathbb{N^{+}}\]
+</p>
+
+<p>
+An input arc \(a\) is therefore enabled if the input place \(p\) has a marking greater or equal than the arc cardinality,
+and so we can define the \(min\) function described above as follows.
+</p>
+
+<p>
+\[\tag{Weighted min} min(a \in A) = a_{src} \in P \land M(a_{src}) \ge W(a)\]
+</p>
+
+<p>
+An output arc will transfer \(W(a)\) tokens from the transition to the output place \(a_{tgt}\).
+</p>
+</div>
+
+<ol class="org-ol">
+<li><a id="org8ed30bc"></a>Textual Notation<br />
+<div class="outline-text-5" id="text-1-9-2-1">
+<pre class="example" id="orgc0d1309">
 net net0 {
-  place p1 {
-    capacity = 2
-  }
-  place p2 {
-    capacity = inf
-  }
+  place p1, p2
   
   transition t1
   
@@ -449,57 +1001,403 @@ net net0 {
   }
 }
 </pre>
+</div>
+</li>
+
+<li><a id="org67c34c6"></a>Graphical Notation<br />
+<div class="outline-text-5" id="text-1-9-2-2">
+<p>
+Arc cardinality is displayed as a label on the arc,  as close to the mid-point of the line as possible.
+</p>
+
+
+<div id="org823c933" class="figure">
+<p><img src="ptnet-graph-cardinality-arc.svg" alt="ptnet-graph-cardinality-arc.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 19: </span>Arc Cardinality</p>
+</div>
+</div>
+</li>
+</ol>
+</div>
+
+<div id="outline-container-org0b43069" class="outline-4">
+<h4 id="org0b43069"><span class="section-number-4">1.9.3.</span> Place Cardinality</h4>
+<div class="outline-text-4" id="text-1-9-3">
+<p>
+Correspondingly, it is possible to add a cardinality, or <i>capacity limit</i> to places such that the cardinality is an upper bound on the number
+of tokens that may be present at the place. A <b>capacity-limited net</b> extends the Net tuple with a <b>capacity function</b>
+\(K\). A Net without explicit capacity limits is behaviorally the same as a Net where all arc cardinalities are set to
+infinity \(∞\). Where a Net does support capacity limits any unspecified capacity assumes the default value of
+\(∞\).
+</p>
 
 <p>
-<b>Graphical Notation</b>
+\[\tag{Capacity-Limited Net} N_K = \left\langle P,T,A,K \right\rangle\]
+</p>
+
+<p>
+This function in general maps the set of places to natural numbers.
+</p>
+
+<p>
+\[\tag{Capacity Function} K: P \mapsto \mathbb{N^{+}\cup\\{\infty\\}}\]
+</p>
+
+<p>
+\[\tag{Place Invariant} \forall p\in P: M_n(p) \le K(p)\]
+</p>
+
+<p>
+The presence of a capacity limit does not affect input arcs, however when a transition may fire each output arc is
+checked to ensure that the output place has capacity to receive the tokens from the arc.
+</p>
+
+<p>
+\[\tag{Capacity Limit} free(a \in A) = \overset{a}{\rightarrow} \in P \land K(\overset{a}{\rightarrow}) \ge M(\overset{a}{\rightarrow}) + W(a)\]
+</p>
+
+<p>
+\[\tag{Limited enabled} enabled\left(t \in T \right) = \forall p_{in} \in {}^{\bullet}t: min(A(p_{in},t)) \land \forall p_{out} \in t^{\bullet}: free(A(t,p_{out}))\]
+</p>
+</div>
+
+<ol class="org-ol">
+<li><a id="org51a3bc7"></a>Textual Notation<br />
+<div class="outline-text-5" id="text-1-9-3-1">
+<pre class="example" id="org31da12e">
+net net0 {
+  place p1 {
+    capacity = 2
+  }
+  place p2 {
+    capacity = inf
+  }
+  
+  transition t1
+  
+  arc p1 -&gt; t1 -&gt; p2
+}
+</pre>
+</div>
+</li>
+
+<li><a id="orgc65cd83"></a>Graphical Notation<br />
+<div class="outline-text-5" id="text-1-9-3-2">
+<p>
+Place cardinality is displayed as a superscript value \(id^{[n]}\) on the place id. It is possible to
+include the unbounded capacity in this way, as \(id^{[\infty]}\), but this is not generally shown as it is understood to be the default.
 </p>
 
 
-<div id="org92393fb" class="figure">
-<p><img src="ptnet-graph-weighted.svg" alt="ptnet-graph-weighted.svg" class="org-svg" />
+<div id="orgca8e132" class="figure">
+<p><img src="ptnet-graph-cardinality-place.svg" alt="ptnet-graph-cardinality-place.svg" class="org-svg" />
 </p>
-<p><span class="figure-number">Figure 14: </span>Weighted Arcs Extension</p>
+<p><span class="figure-number">Figure 20: </span>Place Cardinality Extension</p>
 </div>
+</div>
+</li>
+</ol>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org10e1b40" class="outline-2">
-<h2 id="org10e1b40"><span class="section-number-2">2.</span> Elementary Nets</h2>
+<div id="outline-container-org5d84357" class="outline-2">
+<h2 id="org5d84357"><span class="section-number-2">2.</span> Classification</h2>
 <div class="outline-text-2" id="text-2">
+<p>
+This is a high-level classification of Petri Nets originally made by Monika Trompedeller in 1995, and is based on a
+survey by L. Bernardinello and F. De Cindio from 1992. The classification has not been updated since then and is
+therefore chiefly of historic interest. The classification is, however, useful for getting a quick overview of the main
+differences between various kinds of Petri Nets.
+</p>
+
+<ul class="org-ul">
+<li><b><b>Level 1</b></b>: nets characterized by places which can represent boolean values (\(\mathbb{B}\)), i.e., a place is
+marked by at most one unstructured token.
+<ul class="org-ul">
+<li>Condition/Event systems</li>
+<li>Elementary nets</li>
+</ul></li>
+<li><b><b>Level 2</b></b>: nets characterised by Places which can represent positive integer values (\(\mathbb{N^{+}}\)), i.e.,
+a place is marked by a number of unstructured tokens.
+<ul class="org-ul">
+<li>Place/Transition systems
+<ul class="org-ul">
+<li>(Ordinary) Petri nets
+<ul class="org-ul">
+<li>Free choice systems
+<ul class="org-ul">
+<li>S-Systems
+<ul class="org-ul">
+<li>State Machines</li>
+</ul></li>
+<li>T-Systems
+<ul class="org-ul">
+<li>Marked Graphs</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li><b><b>Level 3</b></b>: nets characterised by Places which can represent high-level values, i.e., a place is marked by a
+multi-set of structured tokens.
+<ul class="org-ul">
+<li>Algebraic Petri nets</li>
+<li>Product nets</li>
+<li>Traditional High-Level nets
+<ul class="org-ul">
+<li>Predicate/Transition Petri nets</li>
+<li>Colored Petri nets</li>
+</ul></li>
+<li>Well-Formed nets
+<ul class="org-ul">
+<li>Regular nets</li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+
+<div id="outline-container-org695435d" class="outline-3">
+<h3 id="org695435d"><span class="section-number-3">2.1.</span> Extensions</h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+Note that the table below uses \(\mathbb{B}\) to represent the set of boolean values \(\left\{ \bot, \top \right\}\)
+or  \(\left\{ 0, 1 \right\}\).
+</p>
+
+<table border="0" cellspacing="0" cellpadding="6" rules="none" frame="none">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Name</th>
+<th scope="col" class="org-left">Abbr</th>
+<th scope="col" class="org-left">Tokens</th>
+<th scope="col" class="org-left">\(W\)</th>
+<th scope="col" class="org-left">\(K\)</th>
+<th scope="col" class="org-left">I/R</th>
+<th scope="col" class="org-left">R-O</th>
+<th scope="col" class="org-left">\(G\)</th>
+<th scope="col" class="org-left">\(D\)</th>
+<th scope="col" class="org-left">Stochastic</th>
+<th scope="col" class="org-right">Level</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Elementary net</td>
+<td class="org-left">EN</td>
+<td class="org-left">\(\mathbb{B}\)</td>
+<td class="org-left">No</td>
+<td class="org-left">No</td>
+<td class="org-left">No</td>
+<td class="org-left">No</td>
+<td class="org-left">No</td>
+<td class="org-left">No</td>
+<td class="org-left">No</td>
+<td class="org-right">1</td>
+</tr>
+
+<tr>
+<td class="org-left">Petri net</td>
+<td class="org-left">PN</td>
+<td class="org-left">\(\mathbb{N^{+}}\)</td>
+<td class="org-left">Yes</td>
+<td class="org-left">No</td>
+<td class="org-left">No</td>
+<td class="org-left">No</td>
+<td class="org-left">No</td>
+<td class="org-left">No</td>
+<td class="org-left">No</td>
+<td class="org-right">2</td>
+</tr>
+
+<tr>
+<td class="org-left">Colored Petri net</td>
+<td class="org-left">CPN</td>
+<td class="org-left">\(C\)</td>
+<td class="org-left">Yes</td>
+<td class="org-left">Yes</td>
+<td class="org-left">No</td>
+<td class="org-left">No</td>
+<td class="org-left">No</td>
+<td class="org-left">No</td>
+<td class="org-left">No</td>
+<td class="org-right">3</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-org6244bbc" class="outline-3">
+<h3 id="org6244bbc"><span class="section-number-3">2.2.</span> Restrictions</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+Instead of extending the Petri net formalism, we can also look at restricting it, and look at particular types of Petri
+nets, obtained by restricting the syntax in a particular way.
+</p>
+
+<p>
+For example Ordinary Petri nets are the nets where all arc weights are 1 and all place capacity is infinite.
+</p>
+
+<p>
+\[\tag{PN Restriction} \forall p\in P: K(p) = \infty \land \forall a\in A: W(a) = 1\]
+</p>
+
+<p>
+Restricting further, the following types of ordinary Petri nets are commonly used and studied.
+</p>
+
+<p>
+In a <b>state machine</b> (SM), every transition has one incoming arc, and one outgoing arc, and all markings have exactly
+one token. As a consequence, there can not be <b><b>concurrency</b></b>, but there can be <b><b>conflict</b></b> (i.e. nondeterminism).
+</p>
+
+<p>
+\[\tag{SM Restriction} \forall t\in T: \left| t^{\bullet}\right| = \left|{}^{\bullet}t \right| = 1\]
+</p>
+
+<p>
+In a <b>marked graph</b> (MG), every place has one incoming arc, and one outgoing arc. This means, that there can <b><b>not</b></b> be
+<b><b>conflict</b></b>, but there can be <b><b>concurrency</b></b>.
+</p>
+
+<p>
+\[\tag{MG Restriction} \forall p\in P: \left| p^{\bullet}\right| = \left|{}^{\bullet}p \right| = 1\]
+</p>
+
+<p>
+In a <b>free choice</b> net (FC), every arc from a place to a transition is either the only arc from that place or the only arc
+to that transition, i.e. there can be <b><b>both concurrency and conflict</b></b>, but <b><b>not at the same time</b></b>.
+</p>
+
+<p>
+\[\tag{FC Restriction} \forall p\in P: (\left|p^{\bullet}\right|\leq 1) \vee ({}^{\bullet} (p^{\bullet})=\\{p\\})\]
+</p>
+
+<p>
+A free choice net is an <b>S-system</b> iff its underlying net is an S-net.
+</p>
+
+<p>
+\[\tag{S-net} \forall t\in T: \left| {}^{\bullet}t\right| \le 1 \land \left|t^{\bullet}\right| \le 1\]
+</p>
+
+<p>
+A free choice net is a <b>T-system</b> iff its underlying net is a T-net. In a T-System there is never any conflict because
+there are no (forward) branched places.
+</p>
+
+<p>
+\[\tag{T-net} \forall p\in P: \left| {}^{\bullet}p \right| \le 1 \land \left| p^{\bullet} \right| \le 1\]
+</p>
+
+<p>
+<b>Extended free choice</b> (EFC) – a Petri net that can be <b><b>transformed into</b></b> an FC.
+</p>
+
+<p>
+In an <b>asymmetric choice net</b> (AC), concurrency and conflict (in sum, <b><b>confusion</b></b>) may occur, but <b><b>not symmetrically</b></b>.
+</p>
+
+<p>
+\[\tag{AC Restriction} \forall p_1,p_2\in P: (p_1{}^{\bullet} \cap p_2{}^{\bullet} \neq \emptyset) \to [(p_1{}^{\bullet} \subseteq p_2{}^{\bullet}) \vee (p_2{}^{\bullet} \subseteq p_1{}^{\bullet})]\]
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgff866ca" class="outline-3">
+<h3 id="orgff866ca"><span class="section-number-3">2.3.</span> Elementary Nets</h3>
+<div class="outline-text-3" id="text-2-3">
 <p>
 An Elementary net is a kind of place/transition net with the following characteristics.
 </p>
 
 <ul class="org-ul">
-<li>The token type is the boolean type \\(\mathbb{B}\\).</li>
-<li>Arcs do not have weights, or are modeled with fixed weights of 1.</li>
-<li>Places do not have capacity constraints, or are modeled with infinite \\(\infty\\) capacity.</li>
-<li>Transitions do not have duration values, or are modeled with a fixed duration of 0.</li>
-<li>Transitions do not have guard expressions, or are modeled with a fixed guard returning true \\(\top\\).</li>
+<li>The token type is the boolean type \(\mathbb{B}\).</li>
+<li>Arcs do not have weights, or are modeled with fixed weights of \(1\).</li>
+<li>Places do not have capacity constraints, or are modeled with infinite \(\infty\) capacity.</li>
+<li>Transitions do not have duration values, or are modeled with a fixed duration of \(0\).</li>
+<li>Transitions do not have guard expressions, or are modeled with a fixed guard returning true (\(\top\)).</li>
 <li>No inhibitor, reset, or read-only arcs are allowed.</li>
 </ul>
 
 
-<div id="orgb183d6e" class="figure">
+<div id="org0d60336" class="figure">
 <p><img src="ptnet-model-elementary-net.svg" alt="ptnet-model-elementary-net.svg" class="org-svg" />
 </p>
-<p><span class="figure-number">Figure 15: </span>Elementary Net Module</p>
+<p><span class="figure-number">Figure 21: </span>Elementary Net Module</p>
+</div>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org9e07049" class="outline-2">
-<h2 id="org9e07049"><span class="section-number-2">3.</span> Appendix: PTNet Language</h2>
+<div id="outline-container-org0c6e175" class="outline-2">
+<h2 id="org0c6e175"><span class="section-number-2">3.</span> Appendix: Meta Model</h2>
 <div class="outline-text-2" id="text-3">
+</div>
+<div id="outline-container-orgd64f9d5" class="outline-3">
+<h3 id="orgd64f9d5"><span class="section-number-3">3.1.</span> Structure</h3>
+<div class="outline-text-3" id="text-3-1">
+
+<div id="orgc9860be" class="figure">
+<p><img src="ptnet-model-packages.svg" alt="ptnet-model-packages.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 22: </span>Core Modules</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org7b07149" class="outline-3">
+<h3 id="org7b07149"><span class="section-number-3">3.2.</span> Common Types</h3>
+<div class="outline-text-3" id="text-3-2">
+
+<div id="org8a6ccf7" class="figure">
+<p><img src="ptnet-model-core.svg" alt="ptnet-model-core.svg" class="org-svg" />
+</p>
+<p><span class="figure-number">Figure 23: </span>Common Types and Interfaces</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgdf7a1b5" class="outline-2">
+<h2 id="orgdf7a1b5"><span class="section-number-2">4.</span> Appendix: PTNet Language</h2>
+<div class="outline-text-2" id="text-4">
 <p>
 PTNet is a source form that allows for compact representation of nets in a readable form.
 </p>
 </div>
 
-<div id="outline-container-org5003896" class="outline-3">
-<h3 id="org5003896"><span class="section-number-3">3.1.</span> PTNet Grammar</h3>
-<div class="outline-text-3" id="text-3-1">
+<div id="outline-container-orgd159d91" class="outline-3">
+<h3 id="orgd159d91"><span class="section-number-3">4.1.</span> PTNet Grammar</h3>
+<div class="outline-text-3" id="text-4-1">
 <div class="org-src-container">
 <pre class="src src-ebnf"><span style="color: #6c71c4;">file</span> =
     net | marking <span style="color: #93a1a1; font-style: italic;">;</span>
@@ -637,20 +1535,21 @@ PTNet is a source form that allows for compact representation of nets in a reada
 </div>
 </div>
 
-<div id="outline-container-org5e48a1b" class="outline-2">
-<h2 id="org5e48a1b"><span class="section-number-2">4.</span> Appendix: GraphViz</h2>
-<div class="outline-text-2" id="text-4">
+<div id="outline-container-orgbcc5632" class="outline-2">
+<h2 id="orgbcc5632"><span class="section-number-2">5.</span> Appendix: GraphViz</h2>
+<div class="outline-text-2" id="text-5">
 </div>
-<div id="outline-container-org0ff6175" class="outline-3">
-<h3 id="org0ff6175"><span class="section-number-3">4.1.</span> Net</h3>
-<div class="outline-text-3" id="text-4-1">
+<div id="outline-container-org20f3d20" class="outline-3">
+<h3 id="org20f3d20"><span class="section-number-3">5.1.</span> Net</h3>
+<div class="outline-text-3" id="text-5-1">
 <div class="org-src-container">
-<pre class="src src-dot" id="org83a9925">strict digraph {
+<pre class="src src-dot" id="orgca2c102">strict digraph {
   id="{id}";
   label="{label}";
   bgcolor="transparent";
   compound=true;
   fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
+  fontsize=14;
   nodesep={seperation};
   rankdir={rankdir};
   ranksep{seperation};
@@ -704,11 +1603,11 @@ PTNet is a source form that allows for compact representation of nets in a reada
 </div>
 </div>
 
-<div id="outline-container-org4ba8833" class="outline-3">
-<h3 id="org4ba8833"><span class="section-number-3">4.2.</span> Place</h3>
-<div class="outline-text-3" id="text-4-2">
+<div id="outline-container-orgde8f3f4" class="outline-3">
+<h3 id="orgde8f3f4"><span class="section-number-3">5.2.</span> Place</h3>
+<div class="outline-text-3" id="text-5-2">
 <div class="org-src-container">
-<pre class="src src-dot" id="orgbdfb5e7">strict digraph {
+<pre class="src src-dot" id="org16c5919">strict digraph {
   {id} [
     id="{id}";
     shape="circle";
@@ -767,11 +1666,11 @@ PTNet is a source form that allows for compact representation of nets in a reada
 </div>
 </div>
 
-<div id="outline-container-org23ba4c9" class="outline-3">
-<h3 id="org23ba4c9"><span class="section-number-3">4.3.</span> Transition</h3>
-<div class="outline-text-3" id="text-4-3">
+<div id="outline-container-org3194fbd" class="outline-3">
+<h3 id="org3194fbd"><span class="section-number-3">5.3.</span> Transition</h3>
+<div class="outline-text-3" id="text-5-3">
 <div class="org-src-container">
-<pre class="src src-dot" id="org1c51a62">strict digraph {
+<pre class="src src-dot" id="org8a35f0e">strict digraph {
   {id} [
     id="{id}";
     shape="rectangle";
@@ -836,14 +1735,18 @@ PTNet is a source form that allows for compact representation of nets in a reada
 </tr>
 </tbody>
 </table>
+
+<p>
+For immediate transitions the size is specified as a fixed value, <code>0.02</code> to give a visually solid bar.
+</p>
 </div>
 </div>
 
-<div id="outline-container-orgb0a1b02" class="outline-3">
-<h3 id="orgb0a1b02"><span class="section-number-3">4.4.</span> Arc</h3>
-<div class="outline-text-3" id="text-4-4">
+<div id="outline-container-orgac323f5" class="outline-3">
+<h3 id="orgac323f5"><span class="section-number-3">5.4.</span> Arc</h3>
+<div class="outline-text-3" id="text-5-4">
 <div class="org-src-container">
-<pre class="src src-dot" id="orgdccfdc3">strict digraph {
+<pre class="src src-dot" id="orgc4b100f">strict digraph {
   {source} -&gt; {target} [
     id="{source}_{target}";
     arrowhead="{arc_head}";
@@ -906,16 +1809,17 @@ PTNet is a source form that allows for compact representation of nets in a reada
 
 <p>
 For normal arcs the <code>arc_head</code> is &ldquo;normal&rdquo; which is a filled triangular head; for inhibitor arcs it is an open circle &ldquo;odot&rdquo;, for
-a reset arc it is two filled triangles &ldquo;normalnormal&rdquo; (like a fast-forward symbol) and a <code>scale</code> factor of 0.66.
+a reset arc it is two filled triangles &ldquo;normalnormal&rdquo; (like a fast-forward symbol) and a <code>scale</code> factor of 0.66. A
+read-only arc is a filled circle &ldquo;odot&rdquo;.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org89044fe" class="outline-3">
-<h3 id="org89044fe"><span class="section-number-3">4.5.</span> Sub-net</h3>
-<div class="outline-text-3" id="text-4-5">
+<div id="outline-container-org16e238d" class="outline-3">
+<h3 id="org16e238d"><span class="section-number-3">5.5.</span> Sub-net</h3>
+<div class="outline-text-3" id="text-5-5">
 <div class="org-src-container">
-<pre class="src src-dot" id="org6c72eea">strict digraph {
+<pre class="src src-dot" id="orgcba9c8a">strict digraph {
   subgraph cluster_{id} {
     label="{id}";
     margin={margin};
@@ -964,9 +1868,9 @@ a reset arc it is two filled triangles &ldquo;normalnormal&rdquo; (like a fast-f
 </div>
 </div>
 
-<div id="outline-container-orgf2117dd" class="outline-3">
-<h3 id="orgf2117dd"><span class="section-number-3">4.6.</span> Colors</h3>
-<div class="outline-text-3" id="text-4-6">
+<div id="outline-container-org9ff7b48" class="outline-3">
+<h3 id="org9ff7b48"><span class="section-number-3">5.6.</span> Colors</h3>
+<div class="outline-text-3" id="text-5-6">
 <table border="0" cellspacing="0" cellpadding="6" rules="none" frame="none">
 
 
@@ -1017,6 +1921,13 @@ a reset arc it is two filled triangles &ldquo;normalnormal&rdquo; (like a fast-f
 </tr>
 
 <tr>
+<td class="org-left">Transition</td>
+<td class="org-left">Dynamic, Busy</td>
+<td class="org-left">&ldquo;darkblue&rdquo;</td>
+<td class="org-left">&ldquo;lightblue&rdquo;</td>
+</tr>
+
+<tr>
 <td class="org-left">Arc</td>
 <td class="org-left">Static</td>
 <td class="org-left">&ldquo;black&rdquo;</td>
@@ -1030,7 +1941,7 @@ a reset arc it is two filled triangles &ldquo;normalnormal&rdquo; (like a fast-f
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Simon Johnston</p>
-<p class="date">Created: 2023-12-18 Mon 09:35</p>
+<p class="date">Created: 2023-12-19 Tue 15:50</p>
 </div>
 </body>
 </html>

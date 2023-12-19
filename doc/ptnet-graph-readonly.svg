@@ -17,7 +17,7 @@
 <!-- t1 -->
 <g id="node3" class="node">
 <title>t1</title>
-<polygon fill="darkgrey" stroke="black" points="163.2,-52.5 156,-52.5 156,-16.5 163.2,-16.5 163.2,-52.5"/>
+<polygon fill="lightgreen" stroke="darkgreen" points="163.2,-52.5 156,-52.5 156,-16.5 163.2,-16.5 163.2,-52.5"/>
 <text text-anchor="middle" x="150.75" y="-3.2" font-family="Times,serif" font-size="14.00">t1</text>
 </g>
 <!-- p1&#45;&gt;t1 -->
@@ -30,7 +30,7 @@
 <!-- p2 -->
 <g id="node2" class="node">
 <title>p2</title>
-<ellipse fill="none" stroke="black" cx="236.2" cy="-34.5" rx="18" ry="18"/>
+<ellipse fill="none" stroke="darkgrey" cx="236.2" cy="-34.5" rx="18" ry="18"/>
 <text text-anchor="middle" x="211.45" y="-3.2" font-family="Times,serif" font-size="14.00">p2</text>
 </g>
 <!-- t1&#45;&gt;p2 -->

@@ -21,83 +21,8 @@ a visual-communication aid similar to flow charts, block diagrams, and networks.
 nets to simulate the dynamic and concurrent activities of systems. As a mathematical tool, it is possible to set up
 state equations, algebraic equations, and other mathematical models governing the behavior of systems.
 
-* PTNet Modules
-
-#+NAME: src:ptnet-model-packages
-#+BEGIN_SRC plantuml :file ptnet-model-packages.svg
-skinparam backgroundColor transparent
-skinparam style strictuml
-skinparam linetype polyline
-skinparam nodesep 100
-
-hide circle
-hide empty members
-
-package ptnet  {
-    package net {}
-    package sim {}
-    sim ..> net: <<import>>
-
-    package guarded {}
-    guarded ..> net: <<import>>
-
-    package inhibited {}
-    inhibited ..> net: <<import>>
-
-    package timed {}
-    timed ..> net: <<import>>
-    timed ..> sim: <<import>>
-
-    package weighted {}
-    weighted ..> net: <<import>>
-    weighted ..> sim: <<import>>
-
-}
-#+END_SRC
-
-#+NAME: fig:ptnet-model-packages
-#+CAPTION: Core Modules
-#+RESULTS: src:ptnet-model-packages
-[[file:ptnet-model-packages.svg]]
-
-** Common Types
-
-#+NAME: src:ptnet-model-core
-#+BEGIN_SRC plantuml :file ptnet-model-core.svg
-skinparam backgroundColor transparent
-skinparam style strictuml
-skinparam linetype polyline
-skinparam nodesep 100
-
-hide circle
-hide empty members
-
-package ptnet  {
-    class NodeId <<datatype>>
-
-    interface HasIdentity {
-        +id: NodeId
-    }
-
-    interface HasLabel {
-        +label: Option<String>
-    }
-
-    interface HasDisplayLabel {
-        display_label: Option<String>
-    }
-}
-class boolean <<datatype>>
-class unsigned <<datatype>>
-class positive <<datatype>>
-#+END_SRC
-
-#+NAME: fig:ptnet-model-core
-#+CAPTION: Common Types and Interfaces
-#+RESULTS: src:ptnet-model-core
-[[file:ptnet-model-core.svg]]
-
-** Net Core Module
+* Place/Transition Nets
+** Core Place/Transition Net
 
 A Net $N$ consists of a tuple of *places* (the set $P$), *transitions* (the set $T$), and *arcs* (the set
 $A$) that connect them. Note that arcs are historically known as *flow relations* and the set is named $F$.
@@ -131,6 +56,7 @@ The set of *output places* for a transition $t$ is called its *postset* or $t^{\
 
 $$\tag{Postset} t^{\bullet} = \left\{ p \in P \mid A(t,p) \right\}$$
 
+*** Meta Model
 #+NAME: src:ptnet-model-net
 #+BEGIN_SRC plantuml :file ptnet-model-net.svg
 skinparam backgroundColor transparent
@@ -151,22 +77,21 @@ package pnet {
         interface Place {}
         Place -down-|> Node
 
+        interface Arc {
+            source: Node
+            target: Node
+        }
+
         interface Transition {}
         Transition -down-|> Node
 
-        interface Arc {
-            source: NodeId
-            target: NodeId
+        interface Net {
+            +preset(Transition): Vec<Place>
+            +postset(Transition): Vec<Place>
         }
-
-        interface Net {}
         Net "1" *--> "*" Place
         Net "1" *--> "*" Transition
         Net "1" *--> "*" Arc
-
-        interface NetBuilder <<builder>>
-        interface PlaceBuilder <<builder>>
-        interface TransitionBuilder <<builder>>
     }
 }
 #+END_SRC
@@ -176,7 +101,7 @@ package pnet {
 #+RESULTS: src:ptnet-model-net
 [[file:ptnet-model-net.svg]]
 
-*Textual Notation*
+*** Textual Notation
 
 #+BEGIN_EXAMPLE
 net net0 {
@@ -186,7 +111,7 @@ net net0 {
 }
 #+END_EXAMPLE
 
-*Graphical Notation*
+*** Graphical Notation
 
 #+NAME: src:ptnet-graph-core
 #+BEGIN_SRC dot :file ptnet-graph-core.svg :exports results
@@ -216,7 +141,12 @@ strict digraph {
 #+RESULTS: src:ptnet-graph-core
 [[file:ptnet-graph-core.svg]]
 
-** Sim Core Module
+- Places :: These are drawn as a circle without any fill color with their label outside the shape.
+- Transitions :: These are drawn as filled rectangles with their label outside the shape. It is often the case that a
+  transition is shown as a solid block of color, our representation will always have a border/fill combination for legibility.
+- Arcs :: These are drawn as directed arrows from source to target with a filled triangular arrow head.
+
+** Core Token Game
 
 Places can contain *tokens*; the current state of the modeled system (termed the *marking function* $M$) is given by the
 number of tokens in each place.
@@ -226,7 +156,7 @@ $$\tag{Marking Function} M: P \mapsto \mathbb{N}$$
 The initial marking of a net is noted as $M_{im}$ or more commonly $M_0$. A *marked net* extends the Net tuple
 with a particular marking $M$.
 
-$$\tag{Marked Net} N = \left\langle P,T,A,M \right\rangle$$
+$$\tag{Marked Net} N_M = \left\langle P,T,A,M \right\rangle$$
 
 Transitions are active components. They model activities which can occur (the transition *fires*), thus changing the
 state of the system (the marking of the Petri net). Transitions are only allowed to fire if they are *enabled*, which
@@ -238,7 +168,7 @@ $$\tag{Enabled Function} enabled\left(t \in T \right) = \forall p \in {}^{\bulle
 
 A net $N$ is therefore enabled *iff* any transition in $N$ is enabled.
 
-$$enabled\left(N\right) \iff \exists t \in T: enabled\left(t\right)$$
+$$enabled\left(N_M\right) \iff \exists t \in T: enabled\left(t\right)$$
 
 When the transition fires, it removes tokens from its input places and adds some at all of its output places. The number
 of tokens removed or added depends on the cardinality of each arc.
@@ -246,8 +176,14 @@ of tokens removed or added depends on the cardinality of each arc.
 The firing of transitions in the marking $M_n$ results in the new marking $M_{n+1}$. The interactive firing of
 transitions in subsequent markings is called the **token game**.
 
-#+NAME: src:ptnet-model-sim
-#+BEGIN_SRC plantuml :file ptnet-model-sim.svg
+A particular game is complete, or /terminated/ if there are no more transitions enabled.
+
+$$\tag{Termination} terminated\left(N_M\right) = \forall t \in T: \neg enabled\left(t\right)$$
+
+*** Meta Model
+
+#+NAME: src:ptnet-model-game
+#+BEGIN_SRC plantuml :file ptnet-model-game.svg
 skinparam backgroundColor transparent
 skinparam style strictuml
 skinparam linetype polyline
@@ -255,42 +191,55 @@ skinparam nodesep 100
 
 hide empty members
 
+interface Countable
+
 package pnet {
     package net {
         interface Net
+        interface Place
+        interface Transition
     }
-    package sim {
+    package game {
+        interface Game {
+            +is_enabled(Transition): boolean
+            +enabled(): Vec<Transition>
+            +step_forward()
+        }
+        Game *-> "+step" Step
+        Game "1" o-down-> "1" Net
+        Game "1" o--> "1" NetMarking
+        Game .down.> Transition
+
+        interface NetMarking {}
+        NetMarking *-> "+step" Step
+        NetMarking *-down-> "+places *" PlaceMarking
+
+        interface PlaceMarking {}
+        PlaceMarking -down-> Place
+        PlaceMarking *-left-> Tokens
+        
+        class Step <<datatype>>
+        class Duration <<datatype>>
+        Duration .up.> Step
+
         interface Tokens {
             +value: Value
         }
         interface Value {
             {static} +default: Value
         }
-        Tokens +-- Value
-        interface Marking {
-            +step: Step
-            +marking(NodeId): Tokens
-        }
-        Marking ..> Tokens
-        
-        class Step <<datatype>>
-        class Duration <<datatype>>
-
-        interface Simulation {
-            +step: Step
-        }
-        Simulation "1" o--> "1" Net
-        Simulation "1" o--> "1" Marking
+        Tokens +-down- Value
+        Value -down-|> Countable
     }
 }
 #+END_SRC
 
-#+NAME: fig:ptnet-model-sim
-#+CAPTION: Sim Core Module
-#+RESULTS: src:ptnet-model-sim
-[[file:ptnet-model-sim.svg]]
+#+NAME: fig:ptnet-model-game
+#+CAPTION: Core Game Module
+#+RESULTS: src:ptnet-model-game
+[[file:ptnet-model-game.svg]]
 
-*Textual Notation*
+*** Textual Notation
 
 #+BEGIN_EXAMPLE
 net net0 {
@@ -304,7 +253,7 @@ net net0 {
 }
 #+END_EXAMPLE
 
-*Graphical Notation*
+*** Graphical Notation
 
 #+NAME: src:ptnet-graph-sim
 #+BEGIN_SRC dot :file ptnet-graph-sim.svg :exports results
@@ -338,7 +287,234 @@ strict digraph {
 #+RESULTS: src:ptnet-graph-sim
 [[file:ptnet-graph-sim.svg]]
 
-** Guarded Extension Module
+- Marked Places :: Markings are drawn within the place shape, the exact format is dependent on the token type.
+  - For boolean tokens ...
+  - For numeric tokens ...
+- Unmarked Places :: Places are drawn empty, they /may/ use a muted color for their boundary.
+- Enabled Transitions :: Shown with a dark green boundary and a light green fill to stand out.
+- Disabled Transitions :: These /may/ be drawn with muted boundary and fill colors.
+*** Patterns
+
+Certain patterns of places and transitions appear commonly in nets, and correspond to operations in concurrent systems
+and are therefore useful to enumerate here.
+
+The first of these is *choice*, or *conflict* where a place may be in the preset of multiple transitions. In this case, only
+one transition may fire and the game must choose which /branch/ to take in a random manner. 
+
+$$\tag{Choice} \left| \left\{ t \in T : p \in {}^{\bullet}t \right\} \right| > 1$$
+
+In the following example the place =p1= may cause the transition =t1= or =t2= to fire but we don't know which.
+
+#+BEGIN_EXAMPLE
+net choice {
+  place p1, p2, p3
+  transition t1, t2
+  arc p1 -> t1
+  arc p1 -> t2
+  arc t1 -> p2
+  arc t2 -> p3
+}
+#+END_EXAMPLE
+
+#+NAME: src:ptnet-pattern-choice
+#+BEGIN_SRC dot :file ptnet-pattern-choice.svg :exports results
+strict digraph {
+    id="net0";
+    bgcolor="transparent";
+    fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
+    nodesep=0.75;
+    rankdir=LR;
+    ranksep=0.75;
+
+    // All place nodes.
+    p1 [shape="circle"; label="●"; xlabel="p1"];
+    p2 [shape="circle"; color="darkgrey"; label=""; xlabel="p2"];
+    p3 [shape="circle"; color="darkgrey"; label=""; xlabel="p3"];
+
+    // All transition nodes.
+    t1 [shape="rectangle"; style="filled"; color="darkgreen"; fillcolor="lightgreen"; height=0.5; width=0.1; label=""; xlabel="t1"];
+    t2 [shape="rectangle"; style="filled"; color="darkgreen"; fillcolor="lightgreen"; height=0.5; width=0.1; label=""; xlabel="t2"];
+
+    // All arcs.
+    p1 -> t1;
+    p1 -> t2;
+    t1 -> p2;
+    t2 -> p3;
+}
+#+END_SRC
+
+#+NAME: src:ptnet-pattern-choice
+#+CAPTION: Pattern Choice/Conflict
+#+RESULTS: src:ptnet-pattern-choice
+[[file:ptnet-pattern-choice.svg]]
+
+The second pattern to consider is the *fork*, where a transition has more than one place in its postset such that each
+will receive a token when it fires. This allows each /branch/ of the fork to run concurrently.
+
+$$\tag{Fork} \left( \left| {}^{\bullet}t \right| = 1 \right) \land \left( \left| t^{\bullet} \right| > 1 \right)$$
+
+In the following example when =t1= fires the places =p2= and =p3= represent separate threads of execution.
+
+#+BEGIN_EXAMPLE
+net fork {
+  place p1, p2, p3
+  transition t1
+  arc p1 -> t1
+  arc t1 -> p2
+  arc t1 -> p3
+}
+#+END_EXAMPLE
+
+#+NAME: src:ptnet-pattern-fork
+#+BEGIN_SRC dot :file ptnet-pattern-fork.svg :exports results
+strict digraph {
+    id="net0";
+    bgcolor="transparent";
+    fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
+    nodesep=0.75;
+    rankdir=LR;
+    ranksep=0.75;
+
+    // All place nodes.
+    p1 [shape="circle"; label="●"; xlabel="p1"];
+    p2 [shape="circle"; color="darkgrey"; label=""; xlabel="p2"];
+    p3 [shape="circle"; color="darkgrey"; label=""; xlabel="p3"];
+
+    // All transition nodes.
+    t1 [shape="rectangle"; style="filled"; color="darkgreen"; fillcolor="lightgreen"; height=0.5; width=0.1; label=""; xlabel="t1"];
+
+    // All arcs.
+    p1 -> t1;
+    t1 -> p2;
+    t1 -> p3;
+}
+#+END_SRC
+
+#+NAME: src:ptnet-pattern-fork
+#+CAPTION: Pattern Fork
+#+RESULTS: src:ptnet-pattern-fork
+[[file:ptnet-pattern-fork.svg]]
+
+A join brings together two or more /branches/ at a single transition. Typically this implies that the join has only one
+place in its postset.
+
+$$\tag{Join} \left( \left| {}^{\bullet}t \right| > 1 \right) \land \left( \left| t^{\bullet} \right| = 1 \right)$$
+
+In the following example =t1= is only enabled when tokens are present at both =p1= and =p2=.
+
+#+BEGIN_EXAMPLE
+net join {
+  place p1, p2, p3
+  transition t1
+  arc p1 -> t1
+  arc t1 -> p2
+  arc t1 -> p3
+}
+#+END_EXAMPLE
+
+#+NAME: src:ptnet-pattern-join
+#+BEGIN_SRC dot :file ptnet-pattern-join.svg :exports results
+strict digraph {
+    id="net0";
+    bgcolor="transparent";
+    fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
+    nodesep=0.75;
+    rankdir=LR;
+    ranksep=0.75;
+
+    // All place nodes.
+    p1 [shape="circle"; label="●"; xlabel="p1"];
+    p2 [shape="circle"; label="●"; xlabel="p2"];
+    p3 [shape="circle"; color="darkgrey"; label=""; xlabel="p3"];
+
+    // All transition nodes.
+    t1 [shape="rectangle"; style="filled"; color="darkgreen"; fillcolor="lightgreen"; height=0.5; width=0.1; label=""; xlabel="t1"];
+
+    // All arcs.
+    p1 -> t1;
+    p2 -> t1;
+    t1 -> p3;
+}
+#+END_SRC
+
+#+NAME: src:ptnet-pattern-join
+#+CAPTION: Pattern Join
+#+RESULTS: src:ptnet-pattern-join
+[[file:ptnet-pattern-join.svg]]
+
+A *rendezvous* is a point at which a transition acts as both a join and a fork, allowing synchronization between two
+concurrent processes.
+
+$$\tag{Rendezvous} \left( \left| {}^{\bullet}t \right| > 1 \right) \land \left( \left| {}^{\bullet}t \right| = \left| t^{\bullet}
+\right| \right)$$
+
+In the following example, which has an $x$ thread and a $y$ thread, the transition =xyt1= will only be enabled
+when both threads are able to contribute tokens and it can be seen that the $y$ thread will take longer to arrive than
+the $x$ thread. Once the two threads are synchronized they carry on from =xyt1= concurrently.
+
+#+BEGIN_EXAMPLE
+net rendezvous {
+  place x1, x2, x3
+  place y1, y2, y3, y4
+  transition xt1, xyt1, yt1, yt2
+  arc x1 -> xt1 -> x2
+  arc y1 -> yt1 -> y2 -> yt2 -> y3
+  arc (x2, y3) -> xyt1 -> (x3, y4)
+}
+#+END_EXAMPLE
+
+#+NAME: src:ptnet-pattern-rendezvous
+#+BEGIN_SRC dot :file ptnet-pattern-rendezvous.svg :exports results
+strict digraph {
+    id="net0";
+    bgcolor="transparent";
+    fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
+    nodesep=0.75;
+    rankdir=LR;
+    ranksep=0.75;
+
+    // All place nodes.
+    x1 [shape="circle"; label="●"; xlabel="x1"];
+    x2 [shape="circle"; color="darkgrey"; label=""; xlabel="x2"];
+    x3 [shape="circle"; color="darkgrey"; label=""; xlabel="x3"];
+    y1 [shape="circle"; label="●"; xlabel="y1"];
+    y2 [shape="circle"; color="darkgrey"; label=""; xlabel="y2"];
+    y3 [shape="circle"; color="darkgrey"; label=""; xlabel="y3"];
+    y4 [shape="circle"; color="darkgrey"; label=""; xlabel="y4"];
+
+    // All transition nodes.
+    xt1 [shape="rectangle"; style="filled"; color="darkgreen"; fillcolor="lightgreen"; height=0.5; width=0.1; label=""; xlabel="xt1"];
+    yt1 [shape="rectangle"; style="filled"; color="darkgreen"; fillcolor="lightgreen"; height=0.5; width=0.1; label=""; xlabel="yt2"];
+    yt2 [shape="rectangle"; style="filled"; color="darkgrey"; fillcolor="lightgrey"; height=0.5; width=0.1; label=""; xlabel="yt3"];
+    xyt1 [shape="rectangle"; style="filled"; color="darkgrey"; fillcolor="lightgrey"; height=0.5; width=0.1; label=""; xlabel="xyt1"];
+
+    // All arcs.
+    x1 -> xt1 -> x2 -> xyt1 -> x3;
+    y1 -> yt1 -> y2 -> yt2 -> y3 -> xyt1 -> y4;
+}
+#+END_SRC
+
+#+NAME: src:ptnet-pattern-rendezvous
+#+CAPTION: Pattern Rendezvous
+#+RESULTS: src:ptnet-pattern-rendezvous
+[[file:ptnet-pattern-rendezvous.svg]]
+
+** Guarded Transitions Extension
+
+In some cases it is desirable to model conditions that will enable/disable a transition beyond the required set of input
+tokens. To accomplish this we add a guard function $G$ to our net definition.
+
+$$\tag{Guarded Net} N_G = \left\langle P,T,A,G \right\rangle$$
+
+This function maps the set of transitions and a *particular marking* to a truth value.
+
+$$\tag{Guard Function} G: T \times M_n \mapsto \mathbb{B}$$
+
+This function is called from within the existing enable check as follows.
+
+$$\tag{Guarded enabled} enabled\left(t \in T, M_n \right) = \forall p \in {}^{\bullet}t: min(A(p,t)) \land G(t, M_n)$$
+
+*** Meta Model
 
 #+NAME: src:ptnet-model-guarded
 #+BEGIN_SRC plantuml :file ptnet-model-guarded.svg
@@ -355,7 +531,6 @@ package pnet {
     }
     package guarded {
         interface GuardedTransition {
-            +is_guarded(): boolean
             +evaluate_guard(): boolean
         }
         GuardedTransition -|> Transition
@@ -368,15 +543,47 @@ package pnet {
 #+RESULTS: src:ptnet-model-guarded
 [[file:ptnet-model-guarded.svg]]
 
-*Textual Notation*
+*** Textual Notation
 
 TBD
 
-*Graphical Notation*
+*** Graphical Notation
 
 TBD
 
-** Inhibited Extension Module
+** Inhibited Transitions Extension
+
+An *inhibitor arc* imposes the precondition that the transition may only fire when the place is empty; this allows
+arbitrary computations on numbers of tokens to be expressed, which makes the formalism Turing complete and implies
+existence of a universal net. The set of inhibitor arcs are noted as $A_{\circ}$ inhibitor arcs .
+
+A *reset arc* does not impose a precondition on firing, and empties the place when the transition fires; this makes
+reachability undecidable, while some other properties, such as termination, remain decidable. The set of reset
+arcs are noted as $A_{\blacktriangleright}$.
+
+For both inhibitor and reset arcs the source must be a place, and the target must be a transition.
+
+$$\forall a \in A_{\circ} \cup A_{\blacktriangleright}: a \in (P \times T)$$
+
+We now define a set, \\(A^{+}\\), which is the union of standard arcs, inhibitor arcs, and reset arcs.
+
+$$\tag{Arc Types} A^{+} = A \cup A_{\circ} \cup A_{\blacktriangleright}$$
+
+A net that includes such arcs is now defined to include this extended set of arcs.
+
+$$\tag{Inhibited Net} N = \left\langle P,T,A^{+} \right\rangle$$
+
+Neither inhibitor or reset arcs may have weights.
+
+An inhibitor arc must connect from a place to a transition.
+
+$$\tag{Inhibitor} i \in \left(P \times T \right) \land W(i) = \emptyset$$
+
+A reset arc must connect from a transition to place.
+
+$$\tag{Inhibitor} r \in \left(T \times P \right) \land W(r) = \emptyset$$
+
+*** Meta Model
 
 #+NAME: src:ptnet-model-inhibited
 #+BEGIN_SRC plantuml :file ptnet-model-inhibited.svg
@@ -394,8 +601,19 @@ package pnet {
     package inhibited {
         interface InhibitorArc {}
         InhibitorArc -up-|> Arc
+        note bottom of InhibitorArc
+        ,**context** InhibitorArc **inv**:
+          self.source.is_place() **and**
+          self.target.is_transition()
+        end note
+
         interface ResetArc {}
         ResetArc -up-|> Arc
+        note bottom of ResetArc
+        ,**context** ResetArc **inv**:
+          self.source.is_transition() **and**
+          self.target.is_place()
+        end note
     }
 }
 #+END_SRC
@@ -405,7 +623,7 @@ package pnet {
 #+RESULTS: src:ptnet-model-inhibited
 [[file:ptnet-model-inhibited.svg]]
 
-*Textual Notation*
+*** Textual Notation
 
 #+BEGIN_EXAMPLE
 net net0 {
@@ -416,7 +634,7 @@ net net0 {
 }
 #+END_EXAMPLE
 
-*Graphical Notation*
+*** Graphical Notation
 
 #+NAME: src:ptnet-graph-inhibited
 #+BEGIN_SRC dot :file ptnet-graph-inhibited.svg :exports results
@@ -428,11 +646,11 @@ strict digraph {
     ranksep=0.75;
 
     // All place nodes.
-    p1 [shape="circle"; label="●"; xlabel="p1"];
-    p2 [shape="circle"; label=""; xlabel="p2"];
+    p1 [shape="circle"; color="darkgrey"; label=""; xlabel="p1"];
+    p2 [shape="circle"; label="●"; xlabel="p2"];
 
     // All transition nodes.
-    t1 [shape="rectangle"; style="filled"; fillcolor="darkgrey"; height=0.5; width=0.1; label=""; xlabel="t1"];
+    t1 [shape="rectangle"; style="filled"; color="darkgreen"; fillcolor="lightgreen"; height=0.5; width=0.1; label=""; xlabel="t1"];
 
     // All arcs.
     p1 -> t1 [arrowhead="odot"; label=<<I>inhibitor</I>>];
@@ -445,7 +663,70 @@ strict digraph {
 #+RESULTS: src:ptnet-graph-inhibited
 [[file:ptnet-graph-inhibited.svg]]
 
-** Read-Only Arc Extension Module
+- Inhibitor Arc :: An inhibitor arc is drawn as a line from the source place to target transition but with an arrow head
+  which is an open circle.
+- Reset Arc :: A reset arc is drawn as a line from the source place to target transition but with an arrow head which is
+  two small filled trangles.
+
+** Prioritized Transitions Extension
+
+TBD
+
+Given a priority function $\pi$ that maps transitions to priority values in $\mathbb{N},.
+
+$$\tag{Priority Function} \pi: T ↦ \mathbb{N}$$
+
+we can define a prioritized net as a net $N$ with the addition of the function $\pi$.
+
+$$\tag{Prioritized Net} N_\pi = \left\langle P,T,A,\pi \right\rangle$$
+
+*** Meta Model
+
+#+NAME: src:ptnet-model-prioritized
+#+BEGIN_SRC plantuml :file ptnet-model-prioritized.svg
+skinparam backgroundColor transparent
+skinparam style strictuml
+skinparam linetype polyline
+skinparam nodesep 100
+
+hide empty members
+
+class unsigned <<datatype>>
+
+package pnet {
+    package net {
+        interface Transition
+    }
+    package prioritized {
+        interface PrioritizedTransition {}
+        PrioritizedTransition *-> "+priority" unsigned
+        PrioritizedTransition -up-|> Transition
+    }
+}
+#+END_SRC
+
+#+NAME: fig:ptnet-model-prioritized
+#+CAPTION: Prioritized Transitions Extension Module
+#+RESULTS: src:ptnet-model-prioritized
+[[file:ptnet-model-prioritized.svg]]
+
+*** Textual Notation
+
+TBD
+
+*** Graphical Notation
+
+TBD
+
+** Contextualized Arcs Extension
+
+Read-only, or simply read, arcs extend the semantics of a net by allowing a transition that is
+enabled by the presence of tokens at an input place without consuming them. Nets supporting
+read-only arcs are referred to as a /contextual net/.
+
+Read-only arcs /may/ have associated weights.
+
+*** Meta Model
 
 #+NAME: src:ptnet-model-readonly
 #+BEGIN_SRC plantuml :file ptnet-model-readonly.svg
@@ -460,30 +741,36 @@ package pnet {
     package net {
         interface Arc
     }
-    package readonly {
+    package contextualized {
         interface ReadOnlyArc {}
         ReadOnlyArc -right-|> Arc
+        note bottom of ReadOnlyArc
+        ,**context** ReadOnlyArc **inv**:
+          self.source.is_place() **and**
+          self.target.is_transition()
+        end note
     }
 }
 #+END_SRC
 
 #+NAME: fig:ptnet-model-readonly
-#+CAPTION: Read-Only Arcs Extension Module
+#+CAPTION: Contextualized Arcs Extension Module
 #+RESULTS: src:ptnet-model-readonly
 [[file:ptnet-model-readonly.svg]]
 
-*Textual Notation*
+*** Textual Notation
 
 #+BEGIN_EXAMPLE
 net net0 {
   place p1, p2
   transition t1
-  arc p1 -read- t1
-  arc t1 -> p2   
+  arc p1 -read> t1 -> p2   
 }
 #+END_EXAMPLE
 
-*Graphical Notation*
+*** Graphical Notation
+
+A read-only arc is drawn as a line from the source place to target transition but with an arrow head which is a filled circle.
 
 #+NAME: src:ptnet-graph-readonly
 #+BEGIN_SRC dot :file ptnet-graph-readonly.svg :exports results
@@ -496,10 +783,10 @@ strict digraph {
 
     // All place nodes.
     p1 [shape="circle"; label="●"; xlabel="p1"];
-    p2 [shape="circle"; label=""; xlabel="p2"];
+    p2 [shape="circle";color="darkgrey"; label=""; xlabel="p2"];
 
     // All transition nodes.
-    t1 [shape="rectangle"; style="filled"; fillcolor="darkgrey"; height=0.5; width=0.1; label=""; xlabel="t1"];
+    t1 [shape="rectangle"; style="filled"; color="darkgreen"; fillcolor="lightgreen"; height=0.5; width=0.1; label=""; xlabel="t1"];
 
     // All arcs.
     p1 -> t1 [arrowhead="dot"; label=<<I>read-only</I>>];
@@ -512,8 +799,48 @@ strict digraph {
 #+RESULTS: src:ptnet-graph-readonly
 [[file:ptnet-graph-readonly.svg]]
 
-** Timed Extension Module
+** Structured Nets Extension
 
+TBD
+
+*** Meta Model
+
+TBD
+
+*** Textual Notation
+
+TBD
+
+*** Graphical Notation
+
+TBD
+
+** Timed Transitions Extension
+
+To study performance and dependability issues of systems it is necessary to include a timing concept into the model.
+There are several possibilities to do this for a Petri net; however, the most common way is to associate a *firing
+delay* with each transition. This delay specifies the time that the transition has to be *enabled*, before it can
+actually fire. If the delay is a random distribution function, the resulting net class is called a *stochastic Petri
+net*. Different types of transitions can be distinguished depending on their associated delay, for instance *immediate
+transitions* (no delay), *exponential transitions* (delay is an exponential distribution), and *deterministic
+transitions* (delay is fixed).
+
+$$\tag{Timed Net} N_D = \left\langle P,T,A,D \right\rangle$$
+
+Timing/Duration function $D$.
+
+$$\tag{Timing Function} D: T ↦ \mathbb{N}$$
+
+- Deterministic or interval: Timed PN (TPN)
+- Random durations : Stochastic PN (SPN)
+
+This also impacts the /termination condition/ for a net in that it may not be possible to enable a particular transition
+not because there are tokens present in its preset but because it is busy completing a previous firing.
+
+$$\tag{Termination} terminated\left(N_D\right) = \forall t \in T: \neg enabled\left(t\right) \land \neg busy\left(t\right)$$
+
+*** Meta Model
+  
 #+NAME: src:ptnet-model-timed
 #+BEGIN_SRC plantuml :file ptnet-model-timed.svg
 skinparam backgroundColor transparent
@@ -535,10 +862,20 @@ package pnet {
             +duration(): Duration
         }
         TimedTransition -up-|> Transition
+
         interface ImmediateTransition {}
         ImmediateTransition -up-|> TimedTransition
-        interface RandomBoundedTransition {}
-        RandomBoundedTransition -up-|> TimedTransition
+
+        interface FixedDurationTransition {
+            +fixed: Duration
+        }
+        FixedDurationTransition -up-|> TimedTransition
+
+        interface IntervalDurationTransition {
+            +lower: Duration
+            +upper: Duration
+        }
+        IntervalDurationTransition -up-|> TimedTransition
     }
 }
 #+END_SRC
@@ -548,15 +885,99 @@ package pnet {
 #+RESULTS: src:ptnet-model-timed
 [[file:ptnet-model-timed.svg]]
 
-*Textual Notation*
+*** Textual Notation
 
-TBD
 
-*Graphical Notation*
+#+BEGIN_EXAMPLE
+net net0 {
+  place p1, p2, p3, p4
+  transition t1 {
+    duration = !
+  }
+  transition t2 {
+    duration = 2
+  }
+  transition t3 {
+    duration = [1, 4]
+  }
+  arc p1 -> t1 -> p2 -> t2 -> p3 -> t3 -> p4
+}
+#+END_EXAMPLE
 
-TBD
+*** Graphical Notation
 
-** Weighted Extension Module
+#+NAME: src:ptnet-graph-timed
+#+BEGIN_SRC dot :file ptnet-graph-timed.svg :exports results
+strict digraph {
+    id="net0";
+    bgcolor="transparent";
+    fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
+    nodesep=0.75;
+    rankdir=LR;
+    ranksep=0.75;
+
+    // All place nodes.
+    p1 [shape="circle"; label=""; xlabel="p1"];
+    p2 [shape="circle"; label=""; xlabel="p2"];
+    p3 [shape="circle"; label=""; xlabel="p3"];
+    p4 [shape="circle"; label=""; xlabel="p4"];
+
+    // All transition nodes.
+    t1 [shape="rectangle"; style="filled"; fillcolor="darkgrey"; height=0.5; width=0.02; label=""; xlabel="t1"];
+    t2 [shape="rectangle"; style="filled"; fillcolor="darkgrey"; height=0.5; width=0.1; label=""; xlabel="t2:π2"];
+    t3 [shape="rectangle"; style="filled"; fillcolor="darkgrey"; height=0.5; width=0.1; label=""; xlabel="t3:π[1,4]"];
+
+    // All arcs.
+    p1 -> t1 -> p2 -> t2 -> p3 -> t3 -> p4;
+}
+#+END_SRC
+
+#+NAME: src:ptnet-graph-timed
+#+CAPTION: Timed Transitions
+#+RESULTS: src:ptnet-graph-timed
+[[file:ptnet-graph-timed.svg]]
+
+- Immediate :: Rather than the usual filled rectangle an immediate transition is drawn as a narrow bar instead.
+- Fixed :: The usual shape is drawn, but the label includes the character "π" followed by the duration. This is usually
+  separated from the initial label content with a colon ":".
+- Interval :: The usual shape is drawn, but the label includes the character "π" followed by the duration interval
+  converted to the closed form $[n,m]$. This is usually separated from the initial label content with a colon ":".
+
+Because there will now be steps in the token game where a particular transition is still in the process of firing (doing
+work) it is useful to visually distinguish these in the visual representation of net. In the example below we draw an
+in-progress transition with a dashed border as well as a different color. The duration component of the label is also
+updated to show that one of two steps have been completed.
+
+#+NAME: src:ptnet-graph-timed-running
+#+BEGIN_SRC dot :file ptnet-graph-timed-running.svg :exports results
+strict digraph {
+    id="net0";
+    bgcolor="transparent";
+    fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
+    nodesep=0.75;
+    rankdir=LR;
+    ranksep=0.75;
+
+    // All place nodes.
+    p1 [shape="circle"; label=""; xlabel="p1"];
+    p2 [shape="circle"; label=""; xlabel="p2"];
+
+    // All transition nodes.
+    t1 [shape="rectangle"; style="dashed,filled"; color="darkblue"; fillcolor="lightblue"; height=0.5; width=0.1; label=""; xlabel=<t2:<FONT COLOR="blue">π1/2</FONT>>];
+
+    // All arcs.
+    p1 -> t1 -> p2;
+}
+#+END_SRC
+
+#+NAME: src:ptnet-graph-timed-running
+#+CAPTION: Timed Transition Execution
+#+RESULTS: src:ptnet-graph-timed-running
+[[file:ptnet-graph-timed-running.svg]]
+
+** Cardinality Extension
+
+*** Meta Model
 
 #+NAME: src:ptnet-model-weighted
 #+BEGIN_SRC plantuml :file ptnet-model-weighted.svg
@@ -575,32 +996,48 @@ package pnet {
     package sim {
         interface Tokens
     }
-    package weighted {
+    package cardinality {
         interface WeightedArc {}
         WeightedArc -up-|> Arc
-        WeightedArc o--> "weight" Tokens
+        WeightedArc o--> "+cardinality" Tokens
+
         interface CapacityLimitedPlace {}
         CapacityLimitedPlace -up-|> Place
-        CapacityLimitedPlace o--> "capacity" Tokens
+        CapacityLimitedPlace o--> "+cardinality" Tokens
     }
 }
 #+END_SRC
 
 #+NAME: fig:ptnet-model-weighted
-#+CAPTION: Weighted Arcs Extension Module
+#+CAPTION: Cardinality Extension Module
 #+RESULTS: src:ptnet-model-weighted
 [[file:ptnet-model-weighted.svg]]
 
-*Textual Notation*
+*** Arc Cardinality
+
+Arcs may have an associated /weight/, sometimes termed its /cardinality/ or /multiplicity/, that denotes the number of tokens that are carried on that arc. The Net tuple is
+therefore extended with a *weight function* $W$. A Net without explicit arc weights is behaviorally the same as a
+Net where all arc weights are set to $1$. Where a Net does support arc weights any unspecified weight assumes the default
+value of $1$.
+
+$$\tag{Weighted Net} N_W = \left\langle P,T,A,W \right\rangle$$
+
+This function in general maps the set of arcs to positive natural numbers -- an arc weight of $0$ would make no sense.
+
+$$\tag{Weight Function} W: A \mapsto \mathbb{N^{+}}$$
+
+An input arc $a$ is therefore enabled if the input place $p$ has a marking greater or equal than the arc cardinality,
+and so we can define the $min$ function described above as follows.
+
+$$\tag{Weighted min} min(a \in A) = a_{src} \in P \land M(a_{src}) \ge W(a)$$
+
+An output arc will transfer $W(a)$ tokens from the transition to the output place $a_{tgt}$.
+
+**** Textual Notation
 
 #+BEGIN_EXAMPLE
 net net0 {
-  place p1 {
-    capacity = 2
-  }
-  place p2 {
-    capacity = inf
-  }
+  place p1, p2
   
   transition t1
   
@@ -613,10 +1050,12 @@ net net0 {
 }
 #+END_EXAMPLE
 
-*Graphical Notation*
+**** Graphical Notation
 
-#+NAME: src:ptnet-graph-weighted
-#+BEGIN_SRC dot :file ptnet-graph-weighted.svg :exports results
+Arc cardinality is displayed as a label on the arc,  as close to the mid-point of the line as possible.
+
+#+NAME: src:ptnet-graph-cardinality-arc
+#+BEGIN_SRC dot :file ptnet-graph-cardinality-arc.svg :exports results
 strict digraph {
     bgcolor="transparent";
     fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
@@ -625,32 +1064,186 @@ strict digraph {
     ranksep=0.75;
 
     // All place nodes.
-    p1 [shape="circle"; label="|2|"; xlabel="p1"];
-    p2 [shape="circle"; label=""; xlabel="p2"];
+    p1 [shape="circle"; label="●"; xlabel="p1"; height=0.5];
+    p2 [shape="circle"; color="darkgrey"; label=""; height=0.5; xlabel="p2"];
 
     // All transition nodes.
-    t1 [shape="rectangle"; style="filled"; fillcolor="darkgrey"; height=0.5; width=0.1; label=""; xlabel="t1"];
+    t1 [shape="rectangle"; style="filled"; color="darkgrey"; fillcolor="lightgrey"; height=0.5; width=0.1; label=""; xlabel="t1"];
 
     // All arcs.
-    p1 -> t1 [arrowhead="none"; label="2"];
+    p1 -> t1 [label="2"];
     t1 -> p2;
 }
 #+END_SRC
 
-#+NAME: src:ptnet-graph-weighted
-#+CAPTION: Weighted Arcs Extension
-#+RESULTS: src:ptnet-graph-weighted
-[[file:ptnet-graph-weighted.svg]]
+#+NAME: src:ptnet-graph-cardinality-arc
+#+CAPTION: Arc Cardinality
+#+RESULTS: src:ptnet-graph-cardinality-arc
+[[file:ptnet-graph-cardinality-arc.svg]]
 
-* Elementary Nets
+*** Place Cardinality
+
+Correspondingly, it is possible to add a cardinality, or /capacity limit/ to places such that the cardinality is an upper bound on the number
+of tokens that may be present at the place. A *capacity-limited net* extends the Net tuple with a *capacity function*
+$K$. A Net without explicit capacity limits is behaviorally the same as a Net where all arc cardinalities are set to
+infinity $∞$. Where a Net does support capacity limits any unspecified capacity assumes the default value of
+$∞$.
+
+$$\tag{Capacity-Limited Net} N_K = \left\langle P,T,A,K \right\rangle$$
+
+This function in general maps the set of places to natural numbers.
+
+$$\tag{Capacity Function} K: P \mapsto \mathbb{N^{+}\cup\\{\infty\\}}$$
+
+$$\tag{Place Invariant} \forall p\in P: M_n(p) \le K(p)$$
+
+The presence of a capacity limit does not affect input arcs, however when a transition may fire each output arc is
+checked to ensure that the output place has capacity to receive the tokens from the arc.
+
+$$\tag{Capacity Limit} free(a \in A) = \overset{a}{\rightarrow} \in P \land K(\overset{a}{\rightarrow}) \ge M(\overset{a}{\rightarrow}) + W(a)$$
+
+$$\tag{Limited enabled} enabled\left(t \in T \right) = \forall p_{in} \in {}^{\bullet}t: min(A(p_{in},t)) \land \forall p_{out} \in t^{\bullet}: free(A(t,p_{out}))$$
+
+**** Textual Notation
+
+#+BEGIN_EXAMPLE
+net net0 {
+  place p1 {
+    capacity = 2
+  }
+  place p2 {
+    capacity = inf
+  }
+  
+  transition t1
+  
+  arc p1 -> t1 -> p2
+}
+#+END_EXAMPLE
+
+**** Graphical Notation
+
+Place cardinality is displayed as a superscript value $id^{[n]}$ on the place id. It is possible to
+include the unbounded capacity in this way, as $id^{[\infty]}$, but this is not generally shown as it is understood to be the default.
+
+#+NAME: src:ptnet-graph-cardinality-place
+#+BEGIN_SRC dot :file ptnet-graph-cardinality-place.svg :exports results
+strict digraph {
+    bgcolor="transparent";
+    fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
+    nodesep=0.75;
+    rankdir=LR;
+    ranksep=0.75;
+
+    // All place nodes.
+    p1 [shape="circle"; label="●"; xlabel=<p1<SUP><FONT POINT-SIZE="10">[2]</FONT></SUP>>; height=0.5];
+    p2 [shape="circle"; color="darkgrey"; label=""; height=0.5; xlabel="p2"];
+
+    // All transition nodes.
+    t1 [shape="rectangle"; style="filled"; color="darkgrey"; fillcolor="lightgrey"; height=0.5; width=0.1; label=""; xlabel="t1"];
+
+    // All arcs.
+    p1 -> t1 [label="2"];
+    t1 -> p2;
+}
+#+END_SRC
+
+#+NAME: src:ptnet-graph-cardinality-place
+#+CAPTION: Place Cardinality Extension
+#+RESULTS: src:ptnet-graph-cardinality-place
+[[file:ptnet-graph-cardinality-place.svg]]
+
+* Classification
+
+This is a high-level classification of Petri Nets originally made by Monika Trompedeller in 1995, and is based on a
+survey by L. Bernardinello and F. De Cindio from 1992. The classification has not been updated since then and is
+therefore chiefly of historic interest. The classification is, however, useful for getting a quick overview of the main
+differences between various kinds of Petri Nets.
+
+- **Level 1**: nets characterized by places which can represent boolean values ($\mathbb{B}$), i.e., a place is
+  marked by at most one unstructured token.
+  - Condition/Event systems
+  - Elementary nets
+- **Level 2**: nets characterised by Places which can represent positive integer values ($\mathbb{N^{+}}$), i.e.,
+  a place is marked by a number of unstructured tokens.
+  - Place/Transition systems
+    - (Ordinary) Petri nets
+      - Free choice systems
+        * S-Systems
+          * State Machines
+        * T-Systems
+          * Marked Graphs
+- **Level 3**: nets characterised by Places which can represent high-level values, i.e., a place is marked by a
+  multi-set of structured tokens.
+  - Algebraic Petri nets
+  - Product nets
+  - Traditional High-Level nets
+    - Predicate/Transition Petri nets
+    - Colored Petri nets
+  - Well-Formed nets
+    - Regular nets
+
+** Extensions
+
+Note that the table below uses $\mathbb{B}$ to represent the set of boolean values $\left\{ \bot, \top \right\}$
+or  $\left\{ 0, 1 \right\}$.
+
+| Name              | Abbr | Tokens        | $W$ | $K$ | I/R | R-O | $G$ | $D$ | Stochastic | Level |
+|-------------------+------+---------------+-----+-----+-----+-----+-----+-----+------------+-------|
+| Elementary net    | EN   | $\mathbb{B}$  | No  | No  | No  | No  | No  | No  | No         |     1 |
+| Petri net         | PN   | $\mathbb{N^{+}}$ | Yes | No  | No  | No  | No  | No  | No         |     2 |
+| Colored Petri net | CPN  | $C$           | Yes | Yes | No  | No  | No  | No  | No         |     3 |
+
+** Restrictions
+
+Instead of extending the Petri net formalism, we can also look at restricting it, and look at particular types of Petri
+nets, obtained by restricting the syntax in a particular way.
+
+For example Ordinary Petri nets are the nets where all arc weights are 1 and all place capacity is infinite.
+
+$$\tag{PN Restriction} \forall p\in P: K(p) = \infty \land \forall a\in A: W(a) = 1$$
+
+Restricting further, the following types of ordinary Petri nets are commonly used and studied.
+
+In a *state machine* (SM), every transition has one incoming arc, and one outgoing arc, and all markings have exactly
+one token. As a consequence, there can not be **concurrency**, but there can be **conflict** (i.e. nondeterminism).
+
+$$\tag{SM Restriction} \forall t\in T: \left| t^{\bullet}\right| = \left|{}^{\bullet}t \right| = 1$$
+
+In a *marked graph* (MG), every place has one incoming arc, and one outgoing arc. This means, that there can **not** be
+**conflict**, but there can be **concurrency**.
+
+$$\tag{MG Restriction} \forall p\in P: \left| p^{\bullet}\right| = \left|{}^{\bullet}p \right| = 1$$
+
+In a *free choice* net (FC), every arc from a place to a transition is either the only arc from that place or the only arc
+to that transition, i.e. there can be **both concurrency and conflict**, but **not at the same time**.
+
+$$\tag{FC Restriction} \forall p\in P: (\left|p^{\bullet}\right|\leq 1) \vee ({}^{\bullet} (p^{\bullet})=\\{p\\})$$
+
+A free choice net is an *S-system* iff its underlying net is an S-net.
+
+$$\tag{S-net} \forall t\in T: \left| {}^{\bullet}t\right| \le 1 \land \left|t^{\bullet}\right| \le 1$$
+
+A free choice net is a *T-system* iff its underlying net is a T-net. In a T-System there is never any conflict because
+there are no (forward) branched places.
+
+$$\tag{T-net} \forall p\in P: \left| {}^{\bullet}p \right| \le 1 \land \left| p^{\bullet} \right| \le 1$$
+
+*Extended free choice* (EFC) – a Petri net that can be **transformed into** an FC.
+
+In an *asymmetric choice net* (AC), concurrency and conflict (in sum, **confusion**) may occur, but **not symmetrically**.
+
+$$\tag{AC Restriction} \forall p_1,p_2\in P: (p_1{}^{\bullet} \cap p_2{}^{\bullet} \neq \emptyset) \to [(p_1{}^{\bullet} \subseteq p_2{}^{\bullet}) \vee (p_2{}^{\bullet} \subseteq p_1{}^{\bullet})]$$
+
+** Elementary Nets
 
 An Elementary net is a kind of place/transition net with the following characteristics.
 
-- The token type is the boolean type \\(\mathbb{B}\\).
-- Arcs do not have weights, or are modeled with fixed weights of 1.
-- Places do not have capacity constraints, or are modeled with infinite \\(\infty\\) capacity.
-- Transitions do not have duration values, or are modeled with a fixed duration of 0.
-- Transitions do not have guard expressions, or are modeled with a fixed guard returning true \\(\top\\).
+- The token type is the boolean type $\mathbb{B}$.
+- Arcs do not have weights, or are modeled with fixed weights of $1$.
+- Places do not have capacity constraints, or are modeled with infinite $\infty$ capacity.
+- Transitions do not have duration values, or are modeled with a fixed duration of $0$.
+- Transitions do not have guard expressions, or are modeled with a fixed guard returning true ($\top$).
 - No inhibitor, reset, or read-only arcs are allowed.
 
 #+NAME: src:ptnet-model-elementary-net
@@ -705,6 +1298,92 @@ package elementary {
 #+CAPTION: Elementary Net Module
 #+RESULTS: src:ptnet-model-elementary-net
 [[file:ptnet-model-elementary-net.svg]]
+
+* Appendix: Meta Model
+
+** Structure
+
+#+NAME: src:ptnet-model-packages
+#+BEGIN_SRC plantuml :file ptnet-model-packages.svg
+skinparam backgroundColor transparent
+skinparam style strictuml
+skinparam linetype polyline
+skinparam nodesep 100
+
+hide circle
+hide empty members
+
+package ptnet  {
+    package net {}
+    package game {}
+    game ..> net: <<extends>>
+
+    package guarded {}
+    guarded .left.> net: <<extends>>
+
+    package inhibited {}
+    inhibited .right.> net: <<extends>>
+
+    package prioritized {}
+    prioritized .up.> net: <<extends>>
+
+    package contextualized {}
+    contextualized .up.> net: <<extends>>
+
+    package structured {}
+    structured .up.> net: <<extends>>
+
+    package timed {}
+    timed ..> net: <<extends>>
+    timed ..> game: <<extends>>
+
+    package cardinality {}
+    cardinality ..> net: <<extends>>
+    cardinality ..> game: <<extends>>
+}
+#+END_SRC
+
+#+NAME: fig:ptnet-model-packages
+#+CAPTION: Core Modules
+#+RESULTS: src:ptnet-model-packages
+[[file:ptnet-model-packages.svg]]
+
+** Common Types
+
+#+NAME: src:ptnet-model-core
+#+BEGIN_SRC plantuml :file ptnet-model-core.svg
+skinparam backgroundColor transparent
+skinparam style strictuml
+skinparam linetype polyline
+skinparam nodesep 100
+
+hide circle
+hide empty members
+
+package ptnet  {
+    class NodeId <<datatype>> {
+        +is_place(): boolean
+        +is_transition(): boolean
+    }
+
+    interface HasIdentity {}
+    HasIdentity *-down-> "+id" NodeId
+
+    interface HasLabel {
+        +label: Option<string>
+    }
+
+    interface HasDisplayLabel {
+        display_label: Option<string>
+    }
+}
+class string <<datatype>>
+#+END_SRC
+
+#+NAME: fig:ptnet-model-core
+#+CAPTION: Common Types and Interfaces
+#+RESULTS: src:ptnet-model-core
+[[file:ptnet-model-core.svg]]
 
 * Appendix: PTNet Language
 
@@ -857,6 +1536,7 @@ strict digraph {
   bgcolor="transparent";
   compound=true;
   fontname="Helvetica Neue,Helvetica,Arial,sans-serif";
+  fontsize=14;
   nodesep={seperation};
   rankdir={rankdir};
   ranksep{seperation};
@@ -968,10 +1648,11 @@ strict digraph {
 
 ** Colors
 
-| Object     | State                | Line Color | Fill Color |
+| Object     | State                | Line Color  | Fill Color   |
 |------------+----------------------+-------------+--------------|
 | Place      | Static               | "black"     | N/A          |
 | Transition | Static               | "black"     | "darkgrey"   |
 | Transition | Dynamic, Enabled     | "darkgreen" | "lightgreen" |
 | Transition | Dynamic, Not Enabled | "darkgrey"  | "lightgrey"  |
+| Transition | Dynamic, Busy        | "darkblue"  | "lightblue"  |
 | Arc        | Static               | "black"     | N/A          |
