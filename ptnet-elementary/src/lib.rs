@@ -739,14 +739,15 @@ impl Simulation for ElementarySimulation {
                 }
                 break;
             } else {
+                // 2. Move the step number forward
                 let this_step = self.step.next();
                 if let Some(tracer) = &self.tracer {
                     tracer.step_started(this_step, self);
                 }
-                // 2. Shuffle the list, ensure the order of firing is non-deterministic.
+                // 3. Shuffle the list, ensure the order of firing is non-deterministic.
                 self.enabled = HashSet::from_iter(self.enabled.drain());
 
-                // 3. Fire all enabled transitions.
+                // 4. Fire all enabled transitions.
                 for transition in self.enabled.iter().cloned().collect::<Vec<_>>() {
                     if let Some(tracer) = &self.tracer {
                         tracer.transition_started(transition, self);
@@ -756,7 +757,7 @@ impl Simulation for ElementarySimulation {
                         tracer.transition_ended(transition, self);
                     }
                 }
-
+                // 5. Update state
                 self.step = this_step;
                 self.marking.set_step(this_step);
                 if let Some(tracer) = &self.tracer {
@@ -803,6 +804,9 @@ impl TraceableSimulation for ElementarySimulation {
 }
 
 impl ElementarySimulation {
+    ///
+    /// Create a new instance, with the provided net and initial marking.
+    ///
     pub fn new(net: Rc<ElementaryNet>, initial: SimpleMarking) -> Self {
         let mut new_self = Self {
             net,
@@ -811,6 +815,7 @@ impl ElementarySimulation {
             step: Step::ZERO,
             tracer: None,
         };
+        // Now initialize the set of enabled transitions.
         let transitions: Vec<NodeId> = new_self.net.transitions().map(|t| t.id()).collect();
         for transition in &transitions {
             new_self.update_enabled(transition).unwrap();
@@ -818,11 +823,17 @@ impl ElementarySimulation {
         new_self
     }
 
+    ///
+    /// Fire the specified transition. This has to first remove any tokens from the transition's
+    /// preset, and check for any existing enabled transition that's now disabled due to lack of
+    /// input. Firing the transition itself is simple, its then removed from the enabled set. Then
+    /// tokens flow along the output arcs to the transition's postset. As a part of this last step
+    /// any transition enabled by this new marking is captured.
+    ///
     fn fire(&mut self, transition: NodeId) -> Result<(), Error> {
         // 1. Take tokens from inputs
         let places: Vec<NodeId> = self.net.preset(&transition).collect();
         for place_id in places {
-            // assert place has tokens (still)
             self.marking.reset(place_id);
             self.update_enabled_from(place_id, &transition)?;
             if let Some(tracer) = &self.tracer {
@@ -833,8 +844,9 @@ impl ElementarySimulation {
         if let Some(tracer) = &self.tracer {
             tracer.fire(transition, self);
         }
+        // 3. Disable this transition now it has fired.
         self.enabled.remove(&transition);
-        // 3. Give tokens to outputs
+        // 4. Give tokens to outputs
         let places: Vec<NodeId> = self.net.postset(&transition).collect();
         for place_id in places {
             self.marking.mark(place_id, Dot::from(true));
@@ -847,6 +859,10 @@ impl ElementarySimulation {
         Ok(())
     }
 
+    ///
+    /// Update any transitions which include `place` in its preset, except the current
+    /// transition.
+    ///
     fn update_enabled_from(&mut self, place: NodeId, exclude: &NodeId) -> Result<(), Error> {
         let others: Vec<NodeId> = self
             .net
@@ -863,23 +879,28 @@ impl ElementarySimulation {
         for other in others {
             self.update_enabled(&other)?;
         }
-
         Ok(())
     }
 
+    ///
+    /// Determine if transition is enabled or not.
+    ///
     fn update_enabled(&mut self, transition: &NodeId) -> Result<(), Error> {
         if self
             .net
             .preset(transition)
             .all(|place| !self.marking.marking(&place).is_empty())
         {
+            // This transition is enabled,
             if !self.enabled.contains(transition) {
+                // and it was previously disabled so update it
                 self.enabled.insert(*transition);
                 if let Some(tracer) = &self.tracer {
                     tracer.transition_enabled(*transition, true, self);
                 }
             }
         } else if self.enabled.contains(transition) {
+            // This transition is disabled, and was previously enabled.
             let _ = self.enabled.remove(transition);
             if let Some(tracer) = &self.tracer {
                 tracer.transition_enabled(*transition, false, self);
