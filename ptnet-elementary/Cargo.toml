@@ -17,4 +17,4 @@ all-features = true
 
 [dependencies]
 ptnet-core = { version = "0.1", path = "../ptnet-core" }
-rand = "0.8.5"
+rand = "0.9.1"
